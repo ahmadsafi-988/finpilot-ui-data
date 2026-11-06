@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FinPilot AI Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F2ED; --surface:#FFFFFF; --surface-2:#FAF8F4; --ink:#14212B; --ink-2:#3E4C56; --muted:#5F6B74;
+  --line:#E2DDD3; --line-2:#EEEAE3;
+  --brand:#0F5257; --brand-2:#136A70; --brand-soft:#E2EFEE; --brand-ink:#0B3D41;
+  --c1:#0F5257; --c2:#C7893A; --c3:#7C93A0;
+  --pos:#1D7349; --pos-soft:#E4F2E9; --neg:#B0362D; --neg-soft:#FBE9E6;
+  --warn:#94600F; --warn-soft:#FBF0DC; --info:#2C5A86; --info-soft:#E6EEF7;
+  --hypo:#8A5A12; --hypo-soft:#FFF5E3;
+  --r:12px; --r-sm:8px;
+  --shadow:0 1px 2px rgba(20,33,43,.05),0 6px 20px rgba(20,33,43,.05);
+  --shadow-lg:0 12px 40px rgba(20,33,43,.18);
+  --font:'IBM Plex Sans','IBM Plex Sans Arabic',system-ui,-apple-system,Segoe UI,sans-serif;
+  color-scheme:light;
+}
+[dir=rtl]{--font:'IBM Plex Sans Arabic','IBM Plex Sans',system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5}
+body{min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3,h4{margin:0;line-height:1.25;font-weight:600}
+h1{font-size:28px;letter-spacing:-.01em} h2{font-size:20px} h3{font-size:16px} h4{font-size:14px}
+p{margin:0}
+a{color:var(--brand-2)}
+.num{font-variant-numeric:tabular-nums;unicode-bidi:isolate;white-space:nowrap}
+.muted{color:var(--muted)} .small{font-size:13px} .tiny{font-size:12px}
+.ic{flex:none;vertical-align:middle}
+[dir=rtl] .flip{transform:scaleX(-1)}
+:focus-visible{outline:3px solid #2F7F86;outline-offset:2px;border-radius:6px}
+.onb>*,.shell>*{min-width:0}
+#main:focus{outline:none}
+.tbl td.wide-c input{min-width:190px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:9px 14px;border-radius:9px;cursor:pointer;font-weight:500;font-size:14px;line-height:1.2;text-decoration:none;color:var(--ink);transition:background .15s,border-color .15s}
+.btn:hover{background:var(--surface-2);border-color:#cfc8bb}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-2)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:rgba(15,82,87,.07)}
+.btn.danger{color:var(--neg);border-color:#e7c3be}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.lg{padding:12px 20px;font-size:15px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.link{background:none;border:0;padding:0;color:var(--brand-2);cursor:pointer;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+
+/* pills & badges */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:500;border:1px solid transparent;white-space:nowrap}
+.p-period{background:var(--surface-2);border-color:var(--line);color:var(--ink-2)}
+.p-asof{background:var(--info-soft);color:var(--info)}
+.p-asof::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.p-fc{background:#EFEAF6;color:#5A3F86}
+.p-ok{background:var(--pos-soft);color:var(--pos)} .p-bad{background:var(--neg-soft);color:var(--neg)}
+.p-warn{background:var(--warn-soft);color:var(--warn)} .p-info{background:var(--info-soft);color:var(--info)}
+.p-neutral{background:var(--line-2);color:var(--ink-2)}
+.badge-official{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;color:#fff;background:var(--brand);padding:3px 8px;border-radius:5px}
+.badge-hypo{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--hypo);background:var(--hypo-soft);border:1.5px dashed #D9A55A;padding:2px 8px;border-radius:5px}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 16px 0;flex-wrap:wrap}
+.card-b{padding:14px 16px 16px}
+.sec-title{display:flex;align-items:center;gap:10px;margin:28px 0 12px;flex-wrap:wrap}
+.sec-title .n{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:13px;font-weight:500;color:var(--ink-2)}
+.field input,.field select{border:1px solid #CFC8BC;background:#fff;border-radius:9px;padding:10px 12px;min-height:42px;width:100%}
+.field input:disabled{background:var(--line-2);color:var(--muted)}
+.field input:focus,.field select:focus{border-color:var(--brand-2);outline:3px solid rgba(19,106,112,.18);outline-offset:0}
+.field.has-err input,.field.has-err select{border-color:var(--neg);background:#FFFBFA}
+.err{color:var(--neg);font-size:13px;display:flex;gap:6px;align-items:flex-start}
+.hint{color:var(--muted);font-size:12.5px}
+.req{color:var(--neg)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+.check input{width:18px;height:18px;margin-top:2px;accent-color:var(--brand)}
+.placeholder-box{border:1.5px dashed #C9C1B3;border-radius:10px;padding:10px 12px;background:repeating-linear-gradient(135deg,#fbfaf7,#fbfaf7 8px,#f5f2ec 8px,#f5f2ec 16px);font-size:13px;color:var(--ink-2)}
+.ph-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--warn);text-transform:uppercase}
+
+/* notices */
+.note{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:10px;font-size:13.5px;border:1px solid}
+.note.info{background:var(--info-soft);border-color:#c9d9ea;color:#1f466c}
+.note.warn{background:var(--warn-soft);border-color:#ecd3a5;color:#6d470b}
+.note.bad{background:var(--neg-soft);border-color:#efc4be;color:#842821}
+.note.ok{background:var(--pos-soft);border-color:#bfe0cc;color:#155535}
+.note.hypo{background:var(--hypo-soft);border-color:#e8c78f;border-style:dashed;color:#6d470b}
+
+/* landing */
+.land{min-height:100vh;display:flex;flex-direction:column}
+.land-top{display:flex;align-items:center;gap:12px;padding:18px 32px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;color:var(--brand-ink)}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:40px 32px 56px;max-width:1200px;margin:0 auto;width:100%}
+.hero h1{font-size:44px;line-height:1.1;letter-spacing:-.02em;color:var(--brand-ink)}
+[dir=rtl] .hero h1{letter-spacing:0;line-height:1.3}
+.hero p.lead{font-size:18px;color:var(--ink-2);margin:18px 0 28px;max-width:540px}
+.vps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:1200px;margin:0 auto;padding:0 32px 48px;width:100%}
+.vp{padding:18px}
+.vp h3{margin:8px 0 4px}
+.land-foot{margin-top:auto;padding:18px 32px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+
+/* onboarding */
+.onb{display:grid;grid-template-columns:300px minmax(0,1fr);min-height:100vh}
+.onb-side{background:var(--brand-ink);color:#DCEBEA;padding:28px 26px;display:flex;flex-direction:column;gap:28px}
+.onb-side .brand{color:#fff}
+.stepper{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.stepper li{display:flex;gap:12px;align-items:center;padding:8px 10px;border-radius:9px;font-size:14px;color:#9FC1BF}
+.stepper li .sn{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #4D7C7F;font-size:12px;font-weight:600}
+.stepper li.done{color:#DCEBEA}.stepper li.done .sn{background:#2E8A86;border-color:#2E8A86;color:#fff}
+.stepper li.cur{background:rgba(255,255,255,.08);color:#fff;font-weight:600}.stepper li.cur .sn{background:#fff;color:var(--brand-ink);border-color:#fff}
+.onb-note{font-size:13px;color:#9FC1BF;margin-top:auto}
+.onb-main{display:flex;flex-direction:column;min-width:0}
+.onb-top{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px}
+.onb-body{width:100%;max-width:640px;margin:0 auto;padding:12px 24px 80px}
+.onb-body.wide{max-width:1040px}
+.onb-body h1{margin-bottom:6px}
+.onb-body .sub{color:var(--ink-2);margin-bottom:24px}
+.pw-meter{display:flex;gap:4px;margin-top:2px}
+.pw-meter span{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.pw-meter.s1 span:nth-child(-n+1){background:var(--neg)}
+.pw-meter.s2 span:nth-child(-n+2){background:var(--warn)}
+.pw-meter.s3 span:nth-child(-n+3){background:#5D9C59}
+.pw-meter.s4 span{background:var(--pos)}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.choice .card{padding:22px;cursor:pointer;text-align:start;border-width:1.5px;display:flex;flex-direction:column;gap:10px}
+.choice .card:hover{border-color:var(--brand-2)}
+.ico-tile{width:42px;height:42px;border-radius:10px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center}
+
+/* wizard */
+.wz{display:flex;gap:6px;margin:4px 0 22px;flex-wrap:wrap}
+.wz span{font-size:12.5px;padding:5px 11px;border-radius:99px;background:var(--line-2);color:var(--muted);font-weight:500}
+.wz span.cur{background:var(--brand);color:#fff}.wz span.done{background:var(--brand-soft);color:var(--brand)}
+.drop{border:2px dashed #C3BCAF;border-radius:var(--r);padding:28px;text-align:center;background:var(--surface-2);cursor:pointer;width:100%}
+.drop:hover{border-color:var(--brand-2)}
+table{border-collapse:collapse;width:100%}
+.tbl{font-size:13.5px}
+.tbl th{text-align:start;font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:9px 10px;border-bottom:1px solid var(--line);background:var(--surface-2);white-space:nowrap}
+[dir=rtl] .tbl th{letter-spacing:0;text-transform:none}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.tbl tr.r-err td{background:#FDF3F1}
+.tbl tr.r-dup td{background:#FDF8EC}
+.tbl input,.tbl select{border:1px solid #D8D1C5;border-radius:7px;padding:6px 8px;width:100%;min-width:90px;background:#fff;font-size:13.5px}
+.tbl tr.r-err input.bad{border-color:var(--neg);background:#fff8f7}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:#fff}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--brand);border-bottom-color:var(--brand)}
+.conf{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.conf i{display:inline-block;width:44px;height:5px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
+.conf i b{position:absolute;inset-block:0;inset-inline-start:0;background:var(--pos)}
+.conf.low i b{background:var(--warn)}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{padding:14px 16px}
+.stat .v{font-size:24px;font-weight:600;margin-top:4px}
+
+/* readiness */
+.rd-list{display:flex;flex-direction:column;gap:10px}
+.rd{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;padding:14px 16px}
+.rd .code{font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:9px;text-align:center;padding:8px 0;font-size:14px}
+
+/* shell */
+.shell{display:grid;grid-template-columns:262px 1fr;min-height:100vh}
+.sidebar{background:var(--surface);border-inline-end:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar .brand{padding:6px 10px 16px}
+.nav-g{font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:14px 10px 6px}
+[dir=rtl] .nav-g{letter-spacing:0}
+.nav-i{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:0;background:none;cursor:pointer;width:100%;text-align:start;color:var(--ink-2);font-size:14px}
+.nav-i:hover{background:var(--surface-2)}
+.nav-i[aria-current=page]{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.nav-i.sub{padding-inline-start:36px;font-size:13.5px}
+.side-foot{margin-top:auto;padding:12px 10px 0;border-top:1px solid var(--line-2);font-size:12.5px;color:var(--muted)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(244,242,237,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:10px 24px;flex-wrap:wrap}
+.topbar .co{font-weight:600}
+.topbar .pg{color:var(--muted)}
+.tb-sel{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 8px;font-size:13px}
+.iconbtn{position:relative;width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer}
+.iconbtn .dot{position:absolute;top:5px;inset-inline-end:5px;min-width:16px;height:16px;border-radius:8px;background:var(--neg);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;padding:0 4px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px}
+.menu-wrap{position:relative}
+.menu{position:absolute;top:calc(100% + 6px);inset-inline-end:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-lg);min-width:230px;padding:6px;z-index:40}
+.menu button{display:flex;width:100%;gap:10px;align-items:center;padding:8px 10px;border:0;background:none;border-radius:7px;cursor:pointer;text-align:start;font-size:14px}
+.menu button:hover{background:var(--surface-2)}
+.content{padding:22px 24px 120px;max-width:1280px;width:100%;margin:0 auto}
+.page-h{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.hamb{display:none}
+
+/* snapshot bar */
+.snap{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:13px;color:var(--ink-2);margin:12px 0 4px}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--brand-soft);border-top-color:var(--brand);animation:sp 0.8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.kpi{padding:16px;cursor:pointer;text-align:start;display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);background:#fff;border-radius:var(--r);box-shadow:var(--shadow);position:relative;width:100%}
+.kpi:hover{border-color:#bfb7a8}
+.kpi .lbl{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:13.5px;color:var(--ink-2);font-weight:500;flex-wrap:wrap}
+.kpi .val{font-size:28px;font-weight:600;letter-spacing:-.01em}
+.kpi .val.neg{color:var(--neg)}
+.kpi .foot{font-size:12.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kpi.busy::after{content:"";position:absolute;inset:0;border-radius:var(--r);background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.65) 50%,transparent 70%);background-size:200% 100%;animation:sh 1.2s infinite}
+.kpi .insuf{font-size:17px;font-weight:600;color:var(--warn);display:flex;gap:6px;align-items:center}
+.delta-up{color:var(--pos)} .delta-dn{color:var(--neg)}
+.kpis.k4{grid-template-columns:repeat(4,1fr)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.charts .full{grid-column:1/-1}
+.chart-card .ch-h{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;padding:14px 16px 4px}
+.chart-card .ch-h h3{flex:1;min-width:160px}
+.chart-svg{width:100%;height:auto;display:block}
+.chart-svg .grid{stroke:var(--line-2)} .chart-svg .zero{stroke:#9aa5ad;stroke-dasharray:4 3}
+.chart-svg .thr{stroke:var(--warn);stroke-dasharray:5 4}
+.chart-svg text{font-size:11px;fill:var(--muted);font-family:var(--font)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);padding:0 16px 6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
+.hbars{display:flex;flex-direction:column;gap:9px;padding:6px 0}
+.hb{display:grid;grid-template-columns:minmax(110px,34%) 1fr auto;gap:10px;align-items:center;font-size:13px}
+.hb .track{height:12px;background:var(--line-2);border-radius:6px;overflow:hidden}
+.hb .bar{height:100%;background:var(--c1);border-radius:6px}
+details.data{padding:0 16px 12px;font-size:12.5px}
+details.data summary{cursor:pointer;color:var(--brand-2);font-weight:500}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mini{padding:14px 16px}
+.mini .v{font-size:22px;font-weight:600;margin:2px 0}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.list li:last-child{border-bottom:0}
+.sev{width:8px;height:8px;border-radius:50%;flex:none}
+.sev.high{background:var(--neg)} .sev.med{background:var(--warn)} .sev.low{background:var(--info)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:5px 11px;font-size:13px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--brand);color:#fff}
+.ai-card{background:linear-gradient(135deg,#F2F8F7,#FFFFFF 60%);}
+.skel{background:linear-gradient(100deg,#ece8e1 30%,#f6f3ee 50%,#ece8e1 70%);background-size:200% 100%;animation:sh 1.3s infinite;border-radius:8px}
+@keyframes sh{to{background-position:-200% 0}}
+.empty{text-align:center;padding:30px 18px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.denied{max-width:560px;margin:60px auto;text-align:center;padding:36px 28px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.lock{width:56px;height:56px;border-radius:14px;background:var(--line-2);display:grid;place-items:center;color:var(--ink-2)}
+
+/* overlays */
+.scrim{position:fixed;inset:0;background:rgba(20,33,43,.38);z-index:60;animation:fd .15s}
+@keyframes fd{from{opacity:0}}
+.drawer{position:fixed;top:0;bottom:0;inset-inline-end:0;width:min(520px,100vw);background:#fff;z-index:61;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;animation:sl .2s ease-out}
+@keyframes sl{from{transform:translateX(30px);opacity:.4}}
+[dir=rtl] .drawer{animation-name:slr}
+@keyframes slr{from{transform:translateX(-30px);opacity:.4}}
+.dr-h{display:flex;align-items:flex-start;gap:10px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.dr-b{padding:18px 20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:16px}
+.dr-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.modal{position:fixed;inset:0;z-index:61;display:grid;place-items:center;padding:20px;pointer-events:none}
+.modal .box{pointer-events:auto;background:#fff;border-radius:16px;box-shadow:var(--shadow-lg);width:min(640px,100%);max-height:calc(100vh - 40px);display:flex;flex-direction:column;animation:pop .18s ease-out}
+.modal .box.wide{width:min(920px,100%)}
+@keyframes pop{from{transform:scale(.97);opacity:.5}}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;text-align:end}
+.bridge{font-size:13.5px}
+.bridge td{padding:6px 0;border-bottom:1px solid var(--line-2)}
+.bridge td:last-child{text-align:end}
+.bridge tr.tot td{font-weight:600;border-top:1.5px solid var(--ink);border-bottom:0}
+.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;direction:ltr;text-align:left}
+.lib-cat{margin-bottom:16px}
+.lib-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.lib-item{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;text-align:start;font-size:13.5px}
+.lib-item:hover{border-color:var(--brand-2)}
+.lib-item[aria-current=true]{border-color:var(--brand);background:var(--brand-soft)}
+
+/* toasts & dev */
+.toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(560px,92vw)}
+.toast{background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-size:14px;box-shadow:var(--shadow-lg);display:flex;gap:10px;align-items:center;pointer-events:auto}
+.dev{position:fixed;bottom:16px;inset-inline-end:16px;z-index:70;font-size:13px}
+.dev-pill{background:#2A2F36;color:#fff;border:0;border-radius:99px;padding:8px 14px;cursor:pointer;font-weight:500;display:flex;gap:8px;align-items:center;box-shadow:var(--shadow-lg)}
+.dev-panel{background:#2A2F36;color:#E8EAED;border-radius:14px;padding:14px;width:290px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:10px;max-height:80vh;overflow:auto}
+.dev-panel label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#AEB4BC}
+.dev-panel select{background:#3A4049;border:1px solid #4B525C;color:#fff;border-radius:7px;padding:6px 8px}
+.dev-panel .tg{flex-direction:row;align-items:center;gap:8px;color:#E8EAED;font-size:13px}
+.dev-panel button.d{background:#3A4049;color:#fff;border:1px solid #4B525C;border-radius:7px;padding:7px 10px;cursor:pointer;text-align:start}
+.gal{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.gal .card{padding:16px;display:flex;flex-direction:column;gap:10px}
+.gal h4{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+
+@media (max-width:1100px){.kpis,.kpis.k4{grid-template-columns:repeat(2,1fr)}.cols3{grid-template-columns:1fr 1fr}}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .sidebar{position:fixed;inset-block:0;inset-inline-start:0;width:280px;z-index:65;transform:translateX(-105%);transition:transform .2s;box-shadow:var(--shadow-lg)}
+  [dir=rtl] .sidebar{transform:translateX(105%)}
+  .sidebar.open{transform:none!important}
+  .hamb{display:grid}
+  .charts,.cols2,.cols3,.gal{grid-template-columns:1fr}
+  .onb{grid-template-columns:minmax(0,1fr)}
+  .onb-side{padding:16px 18px;gap:12px}
+  .onb-side .stepper{flex-direction:row;overflow-x:auto;gap:4px}
+  .onb-side .stepper li{white-space:nowrap;font-size:12.5px;padding:6px 8px}
+  .onb-note{display:none}
+  .hero{grid-template-columns:1fr;gap:28px;padding:24px 16px}
+  .hero h1{font-size:34px}
+  .vps{grid-template-columns:1fr;padding:0 16px 32px}
+  .land-top{padding:14px 16px}
+  .content{padding:16px 16px 120px}
+  .topbar{padding:10px 16px}
+  .topbar .hide-m{display:none}
+}
+@media (max-width:600px){
+  .kpis,.kpis.k4{grid-template-columns:1fr}
+  .grid2,.choice,.statgrid,.lib-grid{grid-template-columns:1fr}
+  .rd{grid-template-columns:44px 1fr}
+  .rd>.row{grid-column:1/-1}
+  .onb-body{padding:8px 16px 90px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="live" class="sr" aria-live="polite"></div>
+<script>
+/* =========================================================
+   FinPilot AI — clickable prototype (no backend)
+   Fixture: Petra Digital Solutions (fictional), §6.9, as-of 2026-11-06
+   ========================================================= */
+const AS_OF='2026-11-06';
+const fresh=()=>({
+  lang:'en', role:'CEO', screen:'landing', page:'summary',
+  reg:{name:'',email:'',pw:'',err:{}}, login:{email:'',pw:'',err:''}, forgot:{email:'',sent:false,err:''},
+  verifyState:'sent',
+  company:{name:'',sector:'',country:'JO',size:'',err:{}}, companyCreated:false, companyName:'Petra Digital Solutions',
+  fin:{currency:'JOD',fy:'1',cash:'',date:'',unknown:false,err:{}},
+  groups:{D1:'np',D2:'np',D3:'np',D4:'np',D5:'np'}, counts:{D2:0,D3:0,D4:0,D5:0,ADJ:0},
+  imp:freshImp(), impInApp:false,
+  sumState:'normal', aiAvail:true, policy:false, period:'oct', horizon:30, fcHorizon:{},
+  slots:loadSlots(), snap:{v:128,at:'2026-11-06T02:00:00',why:'daily'}, updating:false,
+  cashDelta:0, octIn:0, octOut:0, addIn:0, addOut:0,
+  approvals:[{id:'APR-311',by:'Rania Haddad',type:['Edit supplier bill','تعديل فاتورة مورد'],ref:'SB-1044',field:['Expected settlement date','تاريخ السداد المتوقع'],before:'2026-11-10',after:'2026-11-24',reason:['Supplier agreed to extend payment terms by two weeks.','وافق المورد على تمديد شروط الدفع أسبوعين.'],on:'2026-11-06',status:'pending',mine:true}],
+  tasks:[
+    {t:['Follow up overdue invoice INV-2041 (Zarqa Logistics)','متابعة الفاتورة المتأخرة INV-2041 (زرقاء للخدمات اللوجستية)'],due:'2026-11-09',who:'Rania Haddad',st:'open'},
+    {t:['Confirm useful life for laptop purchase before depreciation','تأكيد العمر الإنتاجي لشراء الحاسوب قبل احتساب الإهلاك'],due:'2026-11-12',who:'Rania Haddad',st:'progress'},
+    {t:['Review November payroll total','مراجعة إجمالي رواتب نوفمبر'],due:'2026-11-20',who:'Omar Khalil',st:'open'}],
+  overlay:null, toasts:[], devOpen:false, sidebarOpen:false, menu:null, focusNext:null
+});
+function freshImp(){return{step:1,files:[],unsupported:false,analyzing:false,mapTab:0,dirConv:'',manualMap:{},tab:'trx',validated:false,dup:{},failSim:false,processing:false,result:null,rows:JSON.parse(JSON.stringify(ROWS))}}
+const ROWS={
+  trx:[{id:1,date:'2026-10-05',desc:'Office rent – October',amount:'2200',dir:'OUT',cat:'Rent',cls:'Operating'},
+       {id:2,date:'2026-10-07',desc:'Receipt – Zarqa Logistics',amount:'6000',dir:'IN',cat:'Customer receipts',cls:'Operating'},
+       {id:3,date:'',desc:'Cloud hosting – CloudOps',amount:'480',dir:'OUT',cat:'Software',cls:'Operating'},
+       {id:4,date:'2026-10-12',desc:'Salaries – October',amount:'7200',dir:'OUT',cat:'Salaries',cls:'Operating'},
+       {id:5,date:'2026-10-12',desc:'Salaries – October',amount:'7200',dir:'OUT',cat:'Salaries',cls:'Operating',dupOf:4,dupKind:'exact'},
+       {id:6,date:'2026-10-20',desc:'Laptop purchase',amount:'1400',dir:'OUT',cat:'Equipment',cls:'Investing'}],
+  ar:[{id:1,ref:'INV-2041',cust:'Zarqa Logistics',issue:'2026-09-14',due:'2026-10-14',sub:'5000',tax:'16',paid:'0'},
+      {id:2,ref:'INV-2052',cust:'Aqaba Retail Group',issue:'2026-10-02',due:'2026-11-01',sub:'7400',tax:'16',paid:'0'},
+      {id:3,ref:'INV-2041',cust:'Zarqa Logistics',issue:'2026-09-14',due:'2026-10-14',sub:'5200',tax:'16',paid:'0',dupOf:1,dupKind:'potential'},
+      {id:4,ref:'INV-2060',cust:'Irbid Medical Center',issue:'2026-10-20',due:'2026-11-19',sub:'5600',tax:'16',paid:'2000'}],
+  ap:[{id:1,ref:'SB-1038',sup:'Al-Noor Office Supplies',due:'2026-10-28',gross:'1600',paid:'0',ctype:'Operating'},
+      {id:2,ref:'SB-1044',sup:'CloudOps Hosting',due:'2026-11-10',gross:'500',paid:'0',ctype:'Operating'},
+      {id:3,ref:'SB-1047',sup:'Jordan Print House',due:'2026-11-18',gross:'2860',paid:'3100',ctype:'Direct'}]
+};
+const SAMPLE_FILES=[{name:'transactions_2026.csv',type:'trx',rows:142},{name:'customer_invoices.csv',type:'ar',rows:38},{name:'supplier_bills.csv',type:'ap',rows:21}];
+function loadSlots(){try{const v=JSON.parse(localStorage.getItem('fp_slots')||'null');if(Array.isArray(v)&&v.length===3)return v}catch(e){}return['rev_vs_exp','ncf_trend','projected_balance']}
+function saveSlots(){try{localStorage.setItem('fp_slots',JSON.stringify(S.slots))}catch(e){}}
+let S=fresh();
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const L=(en,ar)=>S.lang==='ar'?ar:en;
+const T=a=>Array.isArray(a)?L(a[0],a[1]):a;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Math.abs(Math.round(n)).toLocaleString('en-US');
+const money=(n,cls='')=>`<span class="num ${cls}" dir="ltr">${n<0?'−':''}JOD ${fmt(n)}</span>`;
+const pct=n=>`<span class="num" dir="ltr">${n<0?'−':''}${Math.abs(n).toFixed(1)}%</span>`;
+const locale=()=>S.lang==='ar'?'ar-EG-u-nu-latn':'en-GB';
+const D=iso=>new Intl.DateTimeFormat(locale(),{day:'numeric',month:'short',year:'numeric'}).format(new Date(iso+'T00:00:00'));
+const DS=iso=>new Intl.DateTimeFormat(locale(),{day:'numeric',month:'short'}).format(new Date(iso+'T00:00:00'));
+const DT=d=>new Intl.DateTimeFormat(locale(),{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d);
+const ML=ym=>new Intl.DateTimeFormat(locale(),{month:'short',year:'numeric'}).format(new Date(ym+'-01T00:00:00'));
+const IC={
+ home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ records:'<path d="M6 3h9l4 4v14H6z M14 3v5h5 M9 12h7 M9 16h7"/>',
+ report:'<path d="M4 20V10 M10 20V4 M16 20v-7 M21 20H3"/>',
+ forecast:'<path d="M3 17l5-5 4 3 8-8 M15 7h5v5"/>',
+ lab:'<path d="M9 3h6 M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3 M7.5 14h9"/>',
+ ai:'<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+ bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z M10 20a2 2 0 0 0 4 0"/>',
+ task:'<path d="M4 5h16v15H4z M8 3v4 M16 3v4 M8 13l3 3 5-5"/>',
+ admin:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+ user:'<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21a8 8 0 0 1 16 0"/>',
+ plus:'<path d="M12 5v14 M5 12h14"/>', close:'<path d="M6 6l12 12 M18 6L6 18"/>', menu:'<path d="M4 7h16 M4 12h16 M4 17h16"/>',
+ globe:'<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M3 12h18 M12 3c3 3.5 3 14.5 0 18 M12 3c-3 3.5-3 14.5 0 18"/>',
+ upload:'<path d="M12 16V4 M7 9l5-5 5 5 M4 20h16"/>', check:'<path d="M5 12l5 5 9-10"/>', alert:'<path d="M12 4l9 16H3z M12 10v4 M12 17v.5"/>',
+ lock:'<path d="M6 11h12v10H6z M8 11V8a4 4 0 0 1 8 0v3"/>', refresh:'<path d="M20 12a8 8 0 1 1-2.3-5.7 M20 4v5h-5"/>',
+ info:'<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 11v6 M12 7.5v.5"/>', chev:'<path d="M9 6l6 6-6 6"/>',
+ mail:'<path d="M3 6h18v12H3z M3 7l9 6 9-6"/>', edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>', file:'<path d="M6 3h9l4 4v14H6z M14 3v5h5"/>',
+ settings:'<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19 12l2-1-2-4-2 .5-1.5-1.2L15 4h-6l-.5 2.3L7 7.5 5 7 3 11l2 1v0l-2 1 2 4 2-.5 1.5 1.2.5 2.3h6l.5-2.3 1.5-1.2 2 .5 2-4z"/>',
+ audit:'<path d="M5 4h14v16H5z M9 8h6 M9 12h6 M9 16h3"/>', sliders:'<path d="M4 6h10 M18 6h2 M4 12h4 M12 12h8 M4 18h12 M20 18h0 M14 4v4 M8 10v4 M16 16v4"/>',
+ cash:'<path d="M3 7h18v10H3z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>', pen:'<path d="M3 21l3-1 12-12-2-2L4 18z M14 6l2 2"/>'
+};
+const icon=(n,s=18)=>`<svg class="ic ${n==='chev'?'flip':''}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
+const logo=()=>`<svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0F5257"/><path d="M9 23V9h12M9 16h8" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/><path d="M19 21l4-4 0 4z" fill="#E3B26B"/></svg>`;
+function announce(m){const el=$('#live');if(el){el.textContent='';setTimeout(()=>el.textContent=m,30)}}
+function toast(m){const id=Math.random();S.toasts.push({id,m});render();announce(m.replace(/<[^>]+>/g,''));setTimeout(()=>{S.toasts=S.toasts.filter(t=>t.id!==id);render()},4200)}
+
+/* ---------- financial data (fixture + demo history) ---------- */
+const M=['2026-06','2026-07','2026-08','2026-09','2026-10'];
+const H={rev:[18400,19900,21200,21700,23000],exp:[17100,17800,18600,18900,19410],rec:[16200,18100,17900,19700,14800],paid:[17000,17600,19000,19100,17150],ocf:[-400,900,-700,1000,-1900],cashEnd:[7990,8490,7390,7990,5640]};
+const FC=[['2026-11-06',5220],['2026-11-08',3620],['2026-11-10',920],['2026-11-15',6420],['2026-11-18',3560],['2026-11-20',11060],['2026-11-25',2560],['2026-11-28',5420],['2026-12-01',4670],['2026-12-03',9010],['2026-12-06',9010],['2026-12-10',6810],['2026-12-20',12400],['2026-12-25',3900],['2027-01-01',3150],['2027-01-10',950],['2027-01-20',7110],['2027-01-25',1200],['2027-01-30',-1390],['2027-02-04',-1390]];
+const FCS={30:{end:9010,in:20200,out:16410,low:920,lowOn:'2026-11-10',short:null},90:{end:-1390,in:52400,out:59010,low:-1390,lowOn:'2027-01-30',short:{on:'2027-01-30',amt:-1390}}};
+const GROUPS={D1:['Company financial setup','إعداد البيانات المالية للشركة'],D2:['Cash transactions','المعاملات النقدية الفعلية'],D3:['Customer invoices','فواتير العملاء'],D4:['Supplier invoices','فواتير الموردين'],D5:['Financial obligations','الالتزامات المالية']};
+const STATUS={configured:['Configured','مُعدّ','p-ok'],entered:['Entered','مُدخَل','p-ok'],none:['Confirmed None','لا يوجد (مؤكَّد)','p-info'],np:['Not Provided','غير مُقدَّم','p-neutral'],attention:['Needs Attention','يحتاج إلى انتباه','p-warn']};
+const KPIS=[[1,'Current Cash Balance','رصيد النقد الحالي',['D1','D2']],[2,'Cash Received','النقد المستلَم',['D2']],[3,'Cash Paid','النقد المدفوع',['D2']],[4,'Net Cash Flow','صافي التدفق النقدي',['D2']],[5,'Operating Cash Flow','التدفق النقدي التشغيلي',['D2']],[6,'Cash Runway','مدة كفاية النقد',['D1','D2']],[7,'Revenue','الإيرادات',['D3']],[8,'Revenue Growth (%)','نمو الإيرادات (%)',['D3']],[9,'Total Expenses','إجمالي المصروفات',['D4','D5']],[10,'Expenses by Category','المصروفات حسب الفئة',['D4','D5']],[11,'Gross Profit','مجمل الربح',['D3','D4']],[12,'Gross Profit Margin (%)','هامش مجمل الربح (%)',['D3','D4']],[13,'Operating Profit (EBIT)','الربح التشغيلي (EBIT)',['D3','D4','D5']],[14,'Operating Profit Margin (%)','هامش الربح التشغيلي (%)',['D3','D4','D5']],[15,'Net Profit / Loss','صافي الربح / الخسارة',['D3','D4','D5']],[16,'Net Profit Margin (%)','هامش صافي الربح (%)',['D3','D4','D5']],[17,'EBITDA','EBITDA',['D3','D4','D5']],[19,'Unpaid Customer Invoices','فواتير العملاء غير المدفوعة',['D3']],[20,'Overdue Customer Invoices','فواتير العملاء المتأخرة',['D3']],[22,'Unpaid Supplier Bills','فواتير الموردين غير المدفوعة',['D4']],[23,'Upcoming Payments','الدفعات القادمة',['D4','D5']],[24,'Overdue Supplier Bills','فواتير الموردين المتأخرة',['D4']],[25,'30-Day Cash Forecast','توقع النقد لـ 30 يومًا',['D1','D2','D3','D4','D5']],[26,'90-Day Cash Forecast','توقع النقد لـ 90 يومًا',['D1','D2','D3','D4','D5']],[27,'Expected Inflows','التدفقات الداخلة المتوقعة',['D3']],[28,'Expected Outflows','التدفقات الخارجة المتوقعة',['D4','D5']],[29,'Projected Cash Shortfall','العجز النقدي المتوقع',['D1','D2','D3','D4','D5']],[30,'Scenario Financial Impact','الأثر المالي للسيناريو',['D1','D2','D3','D4','D5']],[31,'Sales Tax Rate','نسبة ضريبة المبيعات',['D3']],[32,'Sales Tax Amount','قيمة ضريبة المبيعات',['D3']],[33,'Tax Payable','الضريبة المستحقة',['D5']],[34,'Tax Paid','الضريبة المدفوعة',['D2']],[35,'Upcoming Tax Payments','الدفعات الضريبية القادمة',['D5']]];
+function grp(g){if(S.sumState==='empty'&&g!=='D1'&&S.screen==='app')return'np';return S.groups[g]}
+const okG=g=>['configured','entered','none'].includes(grp(g));
+const missing=deps=>deps.filter(g=>!okG(g));
+function setFullData(){S.groups={D1:'configured',D2:'entered',D3:'entered',D4:'entered',D5:'entered'};S.counts={D2:142,D3:38,D4:21,D5:6,ADJ:2};S.companyCreated=true;S.companyName='Petra Digital Solutions';if(!S.fin.cash){S.fin.cash='8790';S.fin.date='2026-06-01'}}
+
+const PERIODS={oct:{idx:[4],en:'Oct 2026',ar:'أكتوبر 2026'},sep:{idx:[3],en:'Sep 2026',ar:'سبتمبر 2026'},aug:{idx:[2],en:'Aug 2026',ar:'أغسطس 2026'},q3:{idx:[1,2,3],en:'Q3 2026 (Jul–Sep)',ar:'الربع الثالث 2026 (يوليو–سبتمبر)'},ytd:{idx:null,en:'YTD 2026',ar:'منذ بداية 2026'}};
+const pLabel=k=>{const p=PERIODS[k||S.period];return L(p.en,p.ar)};
+function sumH(key,idx){return idx.reduce((a,i)=>a+H[key][i]+(i===4&&key==='rec'?S.octIn:0)+(i===4&&key==='paid'?S.octOut:0),0)}
+function pv(key,per){const p=PERIODS[per||S.period];if(!p.idx)return null;
+  if(key==='np')return sumH('rev',p.idx)-sumH('exp',p.idx);
+  if(key==='ncf')return sumH('rec',p.idx)-sumH('paid',p.idx);
+  return sumH(key,p.idx)}
+function prevPer(){const p=PERIODS[S.period];if(!p.idx||p.idx.length>1)return null;const i=p.idx[0]-1;return i>=0?i:null}
+function prevVal(key){const i=prevPer();if(i==null)return null;if(key==='np')return H.rev[i]-H.exp[i];if(key==='ncf')return H.rec[i]-H.paid[i];return H[key][i]}
+const cashNow=()=>5220+S.cashDelta;
+function runway(){const nets=[2,3,4].map(i=>H.rec[i]-H.paid[i]+(i===4?S.octIn-S.octOut:0));const avg=nets.reduce((a,b)=>a+b,0)/3;return avg<0?{v:cashNow()/(-avg),burn:-avg,nets}:{v:null,burn:0,nets}}
+
+/* ---------- navigation model ---------- */
+const PAGES={
+ summary:{en:'Summary',ar:'الملخص',ic:'home',route:'/summary'},
+ trx:{en:'Transactions',ar:'المعاملات النقدية',ic:'cash',route:'/financial-records/transactions',spec:'FL-13 · FR-TRX-001–015'},
+ ar:{en:'Customer Invoices',ar:'فواتير العملاء',ic:'file',route:'/financial-records/customer-invoices',spec:'FL-14 · FR-AR-001–013'},
+ ap:{en:'Supplier Invoices',ar:'فواتير الموردين',ic:'file',route:'/financial-records/supplier-invoices',spec:'FL-15 · FR-AP-001–014'},
+ obl:{en:'Financial Obligations',ar:'الالتزامات المالية',ic:'task',route:'/financial-records/obligations',spec:'FL-16 · FR-OBL-001–015'},
+ adj:{en:'Accounting Adjustments',ar:'التسويات المحاسبية',ic:'pen',route:'/financial-records/adjustments',spec:'FL-17 · FR-ADJ-001–016'},
+ import:{en:'CSV Import',ar:'استيراد CSV',ic:'upload',route:'/financial-records/import'},
+ reports:{en:'Reports & Analytics',ar:'التقارير والتحليلات',ic:'report',route:'/reports',spec:'FL-20, FL-31, FL-32 · FR-REP-001–020'},
+ charts:{en:'All Financial Charts',ar:'جميع الرسوم المالية',ic:'report',route:'/reports/charts'},
+ forecast:{en:'Cash-Flow Forecasting',ar:'توقعات التدفق النقدي',ic:'forecast',route:'/forecast',spec:'FL-21 · FR-FCT-001–019'},
+ lab:{en:'Financial Decision Lab',ar:'مختبر القرارات المالية',ic:'lab',route:'/decision-lab',spec:'FL-22 · FR-LAB-001–021'},
+ advisor:{en:'Ask FinPilot AI',ar:'اسأل FinPilot AI',ic:'ai',route:'/advisor',spec:'FL-23 · FR-AI-001–016'},
+ alerts:{en:'Alerts',ar:'التنبيهات',ic:'bell',route:'/alerts',spec:'FL-24 · FR-ALT-001–014'},
+ tasks:{en:'Tasks & Approvals',ar:'المهام والموافقات',ic:'task',route:'/tasks-approvals',spec:'FL-25, FL-26 · FR-TSK, FR-APR'},
+ mytasks:{en:'My Tasks & Requests',ar:'مهامي وطلباتي',ic:'task',route:'/tasks-approvals',spec:'FL-25, FL-26 · FR-TSK, FR-APR-009'},
+ admintasks:{en:'Tasks',ar:'المهام',ic:'task',route:'/tasks-approvals',spec:'FL-25 · FR-TSK-001–014'},
+ team:{en:'Team & Access',ar:'الفريق والصلاحيات',ic:'user',route:'/admin/team',spec:'FL-11, FL-28 · FR-IAM-001–025'},
+ myperms:{en:'My Permissions',ar:'صلاحياتي',ic:'lock',route:'/admin/team (My Permissions)',spec:'FL-29 · FR-IAM-019–025'},
+ policies:{en:'Approval Policies',ar:'سياسات الموافقة',ic:'admin',route:'/admin/approval-policies',spec:'FL-27 · FR-APR-015–020'},
+ alertcfg:{en:'Alert Configuration',ar:'إعداد التنبيهات',ic:'sliders',route:'/admin/configuration (Alerts)',spec:'FR-ALT-012, FR-CFG-009–010'},
+ config:{en:'Application Configuration',ar:'إعدادات التطبيق',ic:'settings',route:'/admin/configuration',spec:'FL-30 · FR-CFG-001–015'},
+ audit:{en:'Audit Logs',ar:'سجلات التدقيق',ic:'audit',route:'/admin/audit',spec:'FL-30 · FR-AUD-001–010'},
+ profile:{en:'My Profile & Security',ar:'ملفي الشخصي والأمان',ic:'user',route:'/profile',spec:'FR-AUTH-007–010'},
+ states:{en:'UI States Gallery',ar:'معرض حالات الواجهة',ic:'info',route:'(prototype only)'},
+ denied:{en:'Access denied',ar:'الوصول مرفوض',ic:'lock',route:''}
+};
+const NAV={
+ CEO:[['summary'],['g',['Financial Records','السجلات المالية']],['trx',1],['ar',1],['ap',1],['obl',1],['adj',1],['import',1],['g',['Analysis','التحليل']],['reports'],['forecast'],['lab'],['advisor'],['g',['Work','العمل']],['alerts'],['tasks'],['g',['Administration','الإدارة']],['team'],['config'],['policies'],['audit']],
+ Accountant:[['summary'],['g',['Financial Records','السجلات المالية']],['trx',1],['ar',1],['ap',1],['obl',1],['adj',1],['import',1],['g',['Analysis','التحليل']],['reports'],['forecast'],['lab'],['advisor'],['g',['Work','العمل']],['alerts'],['mytasks']],
+ Admin:[['g',['Administration','الإدارة']],['team'],['myperms'],['policies'],['alertcfg'],['config'],['audit'],['g',['Work','العمل']],['admintasks'],['profile']],
+ Consultant:[['profile']]
+};
+const ROLES={CEO:['CEO / Business Owner','الرئيس التنفيذي / المالك','Omar Khalil','OK'],Accountant:['Accountant','المحاسب','Rania Haddad','RH'],Admin:['Company Admin','مسؤول الشركة','Lina Saleh','LS'],Consultant:['Consultant / Viewer','مستشار / مُطّلع','Sami Nasser','SN']};
+const LANDING={CEO:'summary',Accountant:'summary',Admin:'team',Consultant:'profile'};
+const canPage=p=>p==='states'||p==='denied'||p==='charts'&&canPage('summary')||NAV[S.role].some(n=>n[0]===p);
+const canCreate=()=>S.role==='CEO'||S.role==='Accountant';
+
+/* ---------- form field helper ---------- */
+function field(o){const id='f_'+o.id;const inv=o.err?`aria-invalid="true" aria-describedby="${id}_e"`:'';let c;
+ if(o.type==='select')c=`<select id="${id}" ${o.dis?'disabled':''} onchange="${o.on}" ${inv}>${o.opts.map(([v,t])=>`<option value="${esc(v)}" ${String(v)===String(o.value)?'selected':''}>${t}</option>`).join('')}</select>`;
+ else c=`<input id="${id}" type="${o.type||'text'}" value="${esc(o.value)}" ${o.dis?'disabled':''} oninput="${o.on}" ${o.attrs||''} ${inv} ${o.ac?`autocomplete="${o.ac}"`:''}>`;
+ return `<div class="field ${o.err?'has-err':''}"><label for="${id}">${o.label}${o.req?' <span class="req" aria-hidden="true">*</span>':''}</label>${c}${o.extra||''}${o.hint?`<div class="hint">${o.hint}</div>`:''}${o.err?`<div class="err" id="${id}_e" role="alert">${icon('alert',15)}<span>${o.err}</span></div>`:''}</div>`}
+
+/* =========================================================
+   RENDER ROOT
+   ========================================================= */
+function render(){
+ document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
+ const scr=S.screen;let h;
+ if(scr==='landing')h=rLanding();
+ else if(scr==='app')h=rShell();
+ else h=rOnb();
+ $('#app').innerHTML=h+rOverlay()+rDev()+`<div class="toasts">${S.toasts.map(t=>`<div class="toast">${icon('check',16)}<span>${t.m}</span></div>`).join('')}</div>`;
+ if(S.focusNext){const el=document.getElementById(S.focusNext);S.focusNext=null;if(el)el.focus()}
+}
+function go(scr){S.screen=scr;S.overlay=null;S.menu=null;S.focusNext='main';render();window.scrollTo(0,0)}
+function setLang(l){S.lang=l;render()}
+const langBtn=()=>`<button class="btn sm" onclick="setLang('${S.lang==='en'?'ar':'en'}')" aria-label="${L('Switch language to Arabic','التبديل إلى الإنجليزية')}">${icon('globe',16)}${S.lang==='en'?'العربية':'English'}</button>`;
+
+/* ---------- landing (FR-AUTH-001) ---------- */
+function rLanding(){
+ return `<div class="land"><header class="land-top"><div class="brand">${logo()}<span>FinPilot AI</span></div><div class="spacer"></div>${langBtn()}<button class="btn" onclick="go('login')">${L('Log In','تسجيل الدخول')}</button></header>
+ <main id="main" tabindex="-1"><section class="hero"><div>
+  <span class="pill p-info">${L('For Jordanian SMEs · Arabic & English','للشركات الصغيرة والمتوسطة في الأردن · عربي وإنجليزي')}</span>
+  <h1 style="margin-top:14px">${L('Know your cash, your profit and your next 90 days.','اعرف نقدك وأرباحك وأيامك التسعين القادمة.')}</h1>
+  <p class="lead">${L('FinPilot brings your transactions, invoices and obligations into one workspace, calculates 33 verified KPIs, and warns you before cash runs short.','يجمع FinPilot معاملاتك وفواتيرك والتزاماتك في مساحة عمل واحدة، ويحتسب 33 مؤشرًا موثَّقًا، وينبّهك قبل أن ينخفض النقد.')}</p>
+  <div class="row"><button class="btn primary lg" onclick="go('register')">${L('Register Your Business','سجّل نشاطك التجاري')}${icon('chev',16)}</button><button class="btn lg" onclick="go('login')">${L('Log In','تسجيل الدخول')}</button></div>
+  <p class="small muted" style="margin-top:16px">${L('Invited by your company? Open the link in your invitation email instead.','هل تمت دعوتك من شركتك؟ افتح الرابط الموجود في رسالة الدعوة بدلًا من ذلك.')}</p>
+ </div>
+ <div class="card" style="padding:18px"><div class="row"><span class="badge-official">${L('OFFICIAL','رسمي')}</span><span class="small muted">${L('Projected cash · next 90 days','النقد المتوقع · 90 يومًا القادمة')}</span></div>
+  ${svgChart(fcDef(90,true))}
+  <div class="row small" style="justify-content:space-between"><span class="muted">${L('Lowest point','أدنى نقطة')}</span>${money(-1390,'delta-dn')}</div>
+  <p class="tiny muted" style="margin-top:6px">${L('Sample: Petra Digital Solutions (fictional)','مثال: بترا للحلول الرقمية (افتراضي)')}</p></div>
+ </section>
+ <section class="vps">${[['report','33 verified KPIs','33 مؤشرًا موثَّقًا','Every number links to its formula and source records.','كل رقم مرتبط بمعادلته وسجلاته المصدرية.'],['forecast','30/90-day cash forecast','توقع النقد لـ 30/90 يومًا','See the lowest balance and the first day cash goes negative.','اطّلع على أدنى رصيد وأول يوم يصبح فيه النقد سالبًا.'],['lab','Decision Lab','مختبر القرارات','Test hypothetical income and costs without touching real records.','اختبر إيرادات وتكاليف افتراضية دون المساس بالسجلات الحقيقية.']].map(v=>`<div class="card vp"><div class="ico-tile">${icon(v[0],20)}</div><h3>${L(v[1],v[2])}</h3><p class="small muted">${L(v[3],v[4])}</p></div>`).join('')}</section></main>
+ <footer class="land-foot"><span>© 2026 FinPilot AI</span><span>${L('Prototype · no real data is sent anywhere','نموذج أولي · لا تُرسَل أي بيانات حقيقية')}</span></footer></div>`;
+}
+
+/* ---------- onboarding layout ---------- */
+const ONB_STEP={register:0,verify:1,login:0,forgot:0,company:2,finance:3,method:4,import:4,manual:4,readiness:5};
+function rOnb(){
+ const scr=S.screen;const map={register:rRegister,verify:rVerify,login:rLogin,forgot:rForgot,company:rCompany,finance:rFinance,method:rMethod,import:()=>rImport(false),manual:rManual,readiness:rReadiness};
+ const steps=[['Account','الحساب'],['Verify email','تأكيد البريد'],['Company','الشركة'],['Financial setup','الإعداد المالي'],['Financial data','البيانات المالية'],['Readiness','الجاهزية']];
+ const st=ONB_STEP[scr];const authOnly=scr==='login'||scr==='forgot';
+ return `<div class="onb"><aside class="onb-side"><div class="brand">${logo()}<span>FinPilot AI</span></div>
+ ${authOnly?`<p style="font-size:15px;color:#fff">${L('Welcome back.','مرحبًا بعودتك.')}</p>`:`<ol class="stepper" aria-label="${L('Setup progress','تقدّم الإعداد')}">${steps.map((s,i)=>`<li class="${i<st?'done':i===st?'cur':''}" ${i===st?'aria-current="step"':''}><span class="sn">${i<st?icon('check',14):i+1}</span>${L(s[0],s[1])}</li>`).join('')}</ol>`}
+ <p class="onb-note">${L('Your data stays in one company workspace. Nothing becomes official until you confirm it.','تبقى بياناتك ضمن مساحة عمل واحدة لشركتك. لا يصبح أي شيء رسميًا حتى تؤكده.')}</p></aside>
+ <main class="onb-main"><div class="onb-top"><button class="btn sm ghost" onclick="go('landing')">${L('Home','الرئيسية')}</button>${langBtn()}</div>
+ <div class="onb-body ${scr==='import'||scr==='readiness'||scr==='manual'?'wide':''}" id="main" tabindex="-1">${map[scr]()}</div></main></div>`;
+}
+
+/* ---------- FL-01 sign-up ---------- */
+function pwScore(p){let s=0;if(p.length>=8)s++;if(/[A-Z]/.test(p)&&/[a-z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p)||p.length>=12)s++;return p?Math.max(1,s):0}
+const PWL=[['',''],['Weak','ضعيفة'],['Fair','مقبولة'],['Good','جيدة'],['Strong','قوية']];
+function pwInput(v){S.reg.pw=v;const s=pwScore(v);const m=$('#pwm');if(m){m.className='pw-meter s'+s;$('#pwl').textContent=s?L('Strength: ','القوة: ')+T(PWL[s]):''}}
+function rRegister(){const r=S.reg,e=r.err,s=pwScore(r.pw);
+ return `<h1>${L('Register your business','سجّل نشاطك التجاري')}</h1><p class="sub">${L('You will become the protected Owner (CEO) of a new company workspace.','ستصبح المالك المحمي (الرئيس التنفيذي) لمساحة عمل جديدة لشركتك.')}</p>
+ <form onsubmit="event.preventDefault();submitRegister()" novalidate class="card card-b" style="padding:22px">
+ ${field({id:'name',label:L('Full name','الاسم الكامل'),value:r.name,on:"S.reg.name=this.value",err:e.name,req:1,ac:'name'})}
+ ${field({id:'email',label:L('Work email','البريد الإلكتروني للعمل'),type:'email',value:r.email,on:"S.reg.email=this.value",err:e.email,req:1,ac:'email',attrs:'dir="ltr"'})}
+ ${field({id:'pw',label:L('Password','كلمة المرور'),type:'password',value:r.pw,on:"pwInput(this.value)",err:e.pw,req:1,ac:'new-password',attrs:'dir="ltr"',extra:`<div id="pwm" class="pw-meter s${s}" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div class="hint" id="pwl">${s?L('Strength: ','القوة: ')+T(PWL[s]):''}</div>`,hint:L('At least 8 characters with upper- and lower-case letters and a number.','8 أحرف على الأقل تتضمن أحرفًا كبيرة وصغيرة ورقمًا.')})}
+ <div class="placeholder-box" style="margin-bottom:16px"><div class="ph-label">${L('Placeholder · open in spec','عنصر مؤقت · غير محسوم في المواصفات')}</div>${L('Terms / consent acceptance — shown only "if required/configured" (FL-01, AUTH input fields). Not decided yet.','الموافقة على الشروط — تظهر فقط "إذا كانت مطلوبة/مُفعّلة" (FL-01). لم يُحسم بعد.')}</div>
+ <button class="btn primary lg" style="width:100%" type="submit">${L('Create account','إنشاء الحساب')}</button>
+ <p class="small muted" style="margin-top:14px;text-align:center">${L('Already have an account?','لديك حساب بالفعل؟')} <button type="button" class="link" onclick="go('login')">${L('Log in','تسجيل الدخول')}</button></p>
+ </form><p class="tiny muted" style="margin-top:12px">${L('The owner role is assigned by the server when your company is created — it can never be chosen in the browser (FR-AUTH-004).','يُسنَد دور المالك من الخادم عند إنشاء شركتك — ولا يمكن اختياره من المتصفح أبدًا (FR-AUTH-004).')}</p>`}
+function submitRegister(){const r=S.reg,e={};
+ if(!r.name.trim())e.name=L('Enter your full name.','أدخل اسمك الكامل.');
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email.trim()))e.email=L('Enter a valid email address, e.g. name@company.jo','أدخل بريدًا إلكترونيًا صالحًا، مثل name@company.jo');
+ if(pwScore(r.pw)<3||r.pw.length<8)e.pw=L('Use at least 8 characters, mixing upper/lower case and a number.','استخدم 8 أحرف على الأقل تمزج بين الأحرف الكبيرة والصغيرة ورقمًا.');
+ r.err=e;if(Object.keys(e).length){render();const k=Object.keys(e)[0];document.getElementById('f_'+k)?.focus();return}
+ S.verifyState='sent';go('verify')}
+
+/* ---------- FL-01 verify ---------- */
+function rVerify(){const em=S.reg.email||'owner@petradigital.jo';const masked=em.replace(/^(.)(.*)(@.*)$/,(m,a,b,c)=>a+'•'.repeat(Math.min(6,b.length))+c);
+ if(S.verifyState==='expired')return `<div class="card card-b" style="padding:28px;text-align:center"><div class="lock" style="margin:0 auto 12px;background:var(--warn-soft);color:var(--warn)">${icon('alert',26)}</div><h1>${L('This link has expired','انتهت صلاحية هذا الرابط')}</h1><p class="sub" style="margin-top:8px">${L('Verification links are single-use and expire. Request a new one below.','روابط التحقق تُستخدم مرة واحدة وتنتهي صلاحيتها. اطلب رابطًا جديدًا أدناه.')}</p><button class="btn primary lg" onclick="resend()">${icon('refresh',16)}${L('Resend verification email','إعادة إرسال رسالة التحقق')}</button></div>`;
+ return `<div class="card card-b" style="padding:28px"><div class="ico-tile" style="margin-bottom:14px">${icon('mail',22)}</div><h1>${L('Check your inbox','تحقّق من بريدك الوارد')}</h1>
+ <p class="sub" style="margin-top:8px">${L('If this email can be used to register, we\'ve sent a verification link to','إذا كان بالإمكان استخدام هذا البريد للتسجيل، فقد أرسلنا رابط تحقق إلى')} <strong class="num" dir="ltr">${esc(masked)}</strong>.</p>
+ <div class="note info" style="margin-bottom:18px">${icon('info',18)}<span>${L('For security we show the same message whether or not an account already exists (no account enumeration).','لأسباب أمنية نعرض الرسالة نفسها سواء كان الحساب موجودًا أم لا (منع كشف الحسابات).')}</span></div>
+ <div class="row"><button class="btn primary" onclick="verified()">${L('Open verification link (demo)','فتح رابط التحقق (عرض تجريبي)')}</button><button class="btn" onclick="S.verifyState='expired';render()">${L('Simulate expired link','محاكاة رابط منتهي الصلاحية')}</button><button class="btn ghost" onclick="resend()">${L('Resend','إعادة الإرسال')}</button></div>
+ <div class="placeholder-box" style="margin-top:18px"><div class="ph-label">${L('Open decision','قرار مفتوح')}</div>${L('Token lifetime and resend cooldown are engineering decisions (§10.4) — not shown as fixed values.','مدة صلاحية الرمز وفترة الانتظار قبل إعادة الإرسال قرارات هندسية (§10.4) — لا تُعرض كقيم ثابتة.')}</div></div>`}
+function resend(){S.verifyState='sent';render();toast(L('A new verification link was sent.','تم إرسال رابط تحقق جديد.'))}
+function verified(){toast(L('Email verified. Next: create your company workspace.','تم التحقق من البريد. التالي: إنشاء مساحة عمل شركتك.'));go('company')}
+
+/* ---------- FL-02 login / forgot ---------- */
+function rLogin(){const l=S.login;return `<h1>${L('Log in','تسجيل الدخول')}</h1><p class="sub">${L('Access your company workspace.','ادخل إلى مساحة عمل شركتك.')}</p>
+ <form class="card card-b" style="padding:22px" onsubmit="event.preventDefault();submitLogin()" novalidate>
+ ${l.err?`<div class="note bad" role="alert" style="margin-bottom:14px">${icon('alert',18)}<span>${l.err}</span></div>`:''}
+ ${field({id:'lemail',label:L('Email','البريد الإلكتروني'),type:'email',value:l.email,on:"S.login.email=this.value",ac:'email',attrs:'dir="ltr"'})}
+ ${field({id:'lpw',label:L('Password','كلمة المرور'),type:'password',value:l.pw,on:"S.login.pw=this.value",ac:'current-password',attrs:'dir="ltr"'})}
+ <div class="row" style="margin:-4px 0 16px"><button type="button" class="link small" onclick="go('forgot')">${L('Forgot password?','نسيت كلمة المرور؟')}</button></div>
+ <button class="btn primary lg" style="width:100%" type="submit">${L('Log in','تسجيل الدخول')}</button>
+ <p class="small muted" style="margin-top:14px;text-align:center">${L('New business?','نشاط تجاري جديد؟')} <button type="button" class="link" onclick="go('register')">${L('Register your business','سجّل نشاطك التجاري')}</button></p></form>
+ <p class="tiny muted" style="margin-top:12px">${L('Demo: any email + a password of 8+ characters signs you in. An interrupted setup resumes where you left off (FR-AUTH-012).','عرض تجريبي: أي بريد مع كلمة مرور من 8 أحرف أو أكثر يُدخلك. يُستأنف الإعداد غير المكتمل من حيث توقفت (FR-AUTH-012).')}</p>`}
+function submitLogin(){const l=S.login;if(!l.email.includes('@')||l.pw.length<8){l.err=L('Email or password is incorrect.','البريد الإلكتروني أو كلمة المرور غير صحيحة.');render();return}
+ l.err='';if(S.companyCreated&&S.groups.D1!=='np'){S.screen='app';S.page=LANDING[S.role];render()}else if(S.companyCreated)go('finance');else{setFullData();S.screen='app';S.page=LANDING[S.role];render();toast(L('Welcome back, Omar.','مرحبًا بعودتك يا عمر.'))}}
+function rForgot(){const f=S.forgot;if(f.sent)return `<div class="card card-b" style="padding:28px"><div class="ico-tile" style="margin-bottom:14px">${icon('mail',22)}</div><h1>${L('Check your email','تحقّق من بريدك')}</h1><p class="sub" style="margin-top:8px">${L('If an account exists for that address, we\'ve sent a one-time reset link.','إذا كان هناك حساب لهذا العنوان، فقد أرسلنا رابط إعادة تعيين يُستخدم مرة واحدة.')}</p><button class="btn" onclick="S.forgot={email:'',sent:false,err:''};go('login')">${L('Back to log in','العودة لتسجيل الدخول')}</button></div>`;
+ return `<h1>${L('Reset your password','إعادة تعيين كلمة المرور')}</h1><p class="sub">${L('Enter your email and we\'ll send a one-time reset link.','أدخل بريدك وسنرسل رابط إعادة تعيين يُستخدم مرة واحدة.')}</p>
+ <form class="card card-b" style="padding:22px" onsubmit="event.preventDefault();if(!S.forgot.email.includes('@')){S.forgot.err=L('Enter a valid email address.','أدخل بريدًا إلكترونيًا صالحًا.');render()}else{S.forgot.sent=true;S.forgot.err='';render()}" novalidate>
+ ${field({id:'femail',label:L('Email','البريد الإلكتروني'),type:'email',value:f.email,on:"S.forgot.email=this.value",err:f.err,attrs:'dir="ltr"'})}
+ <div class="row"><button class="btn primary" type="submit">${L('Send reset link','إرسال رابط إعادة التعيين')}</button><button type="button" class="btn ghost" onclick="go('login')">${L('Cancel','إلغاء')}</button></div></form>`}
+
+/* ---------- FL-03 company ---------- */
+function rCompany(){const c=S.company,e=c.err;
+ return `<h1>${L('Create your company workspace','أنشئ مساحة عمل شركتك')}</h1><p class="sub">${L('One workspace per account. You can invite your team later — it\'s not required before setup.','مساحة عمل واحدة لكل حساب. يمكنك دعوة فريقك لاحقًا — ليس مطلوبًا قبل الإعداد.')}</p>
+ <form class="card card-b" style="padding:22px" onsubmit="event.preventDefault();submitCompany()" novalidate>
+ ${field({id:'cname',label:L('Company name','اسم الشركة'),value:c.name,on:"S.company.name=this.value",err:e.name,req:1,attrs:'placeholder="Petra Digital Solutions"'})}
+ <div class="grid2">${field({id:'csector',label:L('Sector','القطاع'),type:'select',value:c.sector,on:"S.company.sector=this.value",err:e.sector,req:1,opts:[['',L('Select…','اختر…')],['it',L('IT & digital services','خدمات تقنية ورقمية')],['prof',L('Professional services','خدمات مهنية')],['health',L('Healthcare services','خدمات صحية')],['edu',L('Education & training','التعليم والتدريب')],['other',L('Other services','خدمات أخرى')]]})}
+ ${field({id:'csize',label:L('Company size','حجم الشركة'),type:'select',value:c.size,on:"S.company.size=this.value",opts:[['',L('Select…','اختر…')],['1-4',L('1–4 employees','1–4 موظفين')],['5-10',L('5–10 employees','5–10 موظفين')],['11-50',L('11–50 employees','11–50 موظفًا')],['50+',L('More than 50','أكثر من 50')]]})}</div>
+ ${field({id:'ccountry',label:L('Country','الدولة'),type:'select',value:c.country,on:"S.company.country=this.value",opts:[['JO',L('Jordan','الأردن')],['other',L('Other','أخرى')]]})}
+ <div class="note info" style="margin-bottom:16px">${icon('admin',18)}<span>${L('Creating the workspace and your protected Owner membership happens in one step. If the connection drops, retrying opens the same workspace — never a duplicate.','يتم إنشاء مساحة العمل وعضويتك كمالك محمي في خطوة واحدة. إذا انقطع الاتصال، تفتح إعادة المحاولة مساحة العمل نفسها — دون تكرار.')}</span></div>
+ <button class="btn primary lg" type="submit">${L('Create Workspace','إنشاء مساحة العمل')}</button></form>`}
+function submitCompany(){const c=S.company,e={};const n=c.name.trim();
+ if(n.length<2||n.length>120)e.name=L('Company name must be 2–120 characters.','يجب أن يكون اسم الشركة بين 2 و120 حرفًا.');
+ if(!c.sector)e.sector=L('Choose a sector.','اختر القطاع.');
+ c.err=e;if(Object.keys(e).length){render();return}
+ S.companyCreated=true;S.companyName=n;toast(L('Workspace created — you are its protected Owner.','تم إنشاء مساحة العمل — أنت مالكها المحمي.'));go('finance')}
+
+/* ---------- FL-04 financial setup ---------- */
+function rFinance(){const f=S.fin,e=f.err;const months=Array.from({length:12},(_,i)=>[String(i+1),new Intl.DateTimeFormat(locale(),{month:'long'}).format(new Date(2026,i,1))]);
+ return `<h1>${L('Financial setup','الإعداد المالي')}</h1><p class="sub">${L('These settings give every calculation a dependable starting point.','تمنح هذه الإعدادات كل عملية حسابية نقطة بداية موثوقة.')}</p>
+ <form class="card card-b" style="padding:22px" onsubmit="event.preventDefault();submitFinance()" novalidate>
+ <div class="grid2">${field({id:'cur',label:L('Company currency','عملة الشركة'),type:'select',value:f.currency,on:"S.fin.currency=this.value",req:1,opts:[['JOD',L('JOD — Jordanian Dinar','دينار أردني (JOD)')],['USD','USD'],['EUR','EUR']],hint:L('One currency for the whole company. It can\'t be changed freely once records exist.','عملة واحدة للشركة كلها. لا يمكن تغييرها بحرية بعد وجود سجلات.')})}
+ ${field({id:'fy',label:L('Fiscal year starts in','تبدأ السنة المالية في'),type:'select',value:f.fy,on:"S.fin.fy=this.value",req:1,opts:months})}</div>
+ <fieldset style="border:1px solid var(--line);border-radius:10px;padding:14px 14px 4px;margin:4px 0 16px"><legend class="small" style="padding:0 6px;font-weight:600">${L('Opening cash balance','الرصيد النقدي الافتتاحي')}</legend>
+ <label class="check" style="margin-bottom:12px"><input type="checkbox" ${f.unknown?'checked':''} onchange="S.fin.unknown=this.checked;S.fin.err={};render()"><span>${L('I don\'t know this yet','لا أعرف هذا بعد')}</span></label>
+ ${f.unknown?`<div class="note warn" style="margin-bottom:14px">${icon('alert',18)}<div><strong>${L('Opening cash: Unknown','النقد الافتتاحي: غير معروف')}</strong><br>${L('It will never be treated as JOD 0. Current Cash, Cash Runway and the forecasts will show "Insufficient Data" until you add it.','لن يُعامَل أبدًا على أنه 0 دينار. سيظهر رصيد النقد ومدة كفاية النقد والتوقعات بحالة "بيانات غير كافية" حتى تضيفه.')}</div></div>`:
+ `<div class="grid2">${field({id:'ocash',label:L('Amount (JOD)','المبلغ (د.أ)'),value:f.cash,on:"S.fin.cash=this.value",err:e.cash,req:1,attrs:'inputmode="decimal" dir="ltr" placeholder="8,790.000"'})}
+ ${field({id:'odate',label:L('Balance date','تاريخ الرصيد'),type:'date',value:f.date,on:"S.fin.date=this.value",err:e.date,req:1,attrs:'dir="ltr"'})}</div>`}
+ </fieldset>
+ <div class="row"><button class="btn primary lg" type="submit">${L('Save and continue','حفظ ومتابعة')}</button></div></form>`}
+function submitFinance(){const f=S.fin,e={};
+ if(!f.unknown){const n=Number(String(f.cash).replace(/,/g,''));if(f.cash===''||isNaN(n)||n<0)e.cash=L('Enter a valid amount (0 or more), or tick "I don\'t know this yet".','أدخل مبلغًا صالحًا (0 أو أكثر)، أو اختر "لا أعرف هذا بعد".');if(!f.date)e.date=L('Enter the date this balance applies to.','أدخل التاريخ الذي ينطبق عليه هذا الرصيد.')}
+ f.err=e;if(Object.keys(e).length){render();return}
+ S.groups.D1=f.unknown?'attention':'configured';go('method')}
+
+/* ---------- data method ---------- */
+function rMethod(){return `<h1>${L('How would you like to add your financial data?','كيف تريد إضافة بياناتك المالية؟')}</h1><p class="sub">${L('You can mix both later — import a CSV now and add records by hand any time.','يمكنك الجمع بين الطريقتين لاحقًا — استورد ملف CSV الآن وأضف السجلات يدويًا في أي وقت.')}</p>
+ <div class="choice"><button class="card" onclick="S.imp=freshImp();S.impInApp=false;go('import')"><div class="ico-tile">${icon('upload',22)}</div><h3>${L('Upload CSV','رفع ملف CSV')}</h3><p class="small muted">${L('Transactions, customer invoices and supplier invoices. AI suggests the column mapping; you review every row before anything becomes official.','المعاملات وفواتير العملاء وفواتير الموردين. يقترح الذكاء الاصطناعي ربط الأعمدة؛ وتراجع كل صف قبل أن يصبح أي شيء رسميًا.')}</p><span class="pill p-neutral">${L('Obligations & adjustments: manual only','الالتزامات والتسويات: يدويًا فقط')}</span></button>
+ <button class="card" onclick="go('manual')"><div class="ico-tile">${icon('edit',22)}</div><h3>${L('Start From Scratch','البدء من الصفر')}</h3><p class="small muted">${L('Use guided forms to add transactions, invoices, obligations and optional accounting adjustments.','استخدم نماذج موجّهة لإضافة المعاملات والفواتير والالتزامات والتسويات المحاسبية الاختيارية.')}</p></button></div>
+ <p class="small muted" style="margin-top:18px">${L('No data yet?','لا توجد بيانات بعد؟')} <button class="link" onclick="go('readiness')">${L('Skip to readiness','تخطَّ إلى الجاهزية')}</button></p>`}
+
+/* =========================================================
+   CSV IMPORT WIZARD (FL-05 → FL-08)
+   ========================================================= */
+const WZ=[['Upload','الرفع'],['Map columns','ربط الأعمدة'],['Review','المراجعة'],['Confirm','التأكيد'],['Result','النتيجة']];
+const FT={trx:['Transactions','المعاملات'],ar:['Customer invoices','فواتير العملاء'],ap:['Supplier invoices','فواتير الموردين']};
+const MAP={
+ trx:[['Txn Date','05/10/2026','date',98],['Details','Office rent – October','description',95],['Amount (JOD)','2,200.00','amount',91],['Dr/Cr','D','direction',62,1],['Type','Rent','category',84],['Class','Operating','cfclass',77]],
+ ar:[['Invoice #','INV-2041','number',99],['Client','Zarqa Logistics','customer',96],['Issued','2026-09-14','issueDate',97],['Due','2026-10-14','dueDate',97],['Net','5,000.00','subtotal',88],['VAT %','16','taxRate',90],['Received','0.00','paid',81]],
+ ap:[['Bill No','SB-1038','number',99],['Vendor','Al-Noor Office Supplies','supplier',97],['Due Date','2026-10-28','dueDate',96],['Total','1,600.00','gross',89],['Paid','0.00','paid',83],['Kind','Office supplies','costType',72]]};
+const FIELDS={date:['Transaction date','تاريخ المعاملة'],description:['Description','الوصف'],amount:['Amount','المبلغ'],direction:['Direction (IN/OUT)','الاتجاه (داخل/خارج)'],category:['Category','الفئة'],cfclass:['Cash-flow class','تصنيف التدفق النقدي'],number:['Reference number','الرقم المرجعي'],customer:['Customer','العميل'],supplier:['Supplier','المورد'],issueDate:['Issue date','تاريخ الإصدار'],dueDate:['Due date','تاريخ الاستحقاق'],subtotal:['Pre-tax subtotal','المجموع قبل الضريبة'],taxRate:['Tax rate','نسبة الضريبة'],gross:['Gross amount','المبلغ الإجمالي'],paid:['Paid-to-date','المدفوع حتى تاريخه'],costType:['Cost classification','تصنيف التكلفة'],ignore:['— Don\'t import —','— عدم الاستيراد —']};
+function rImport(inApp){const I=S.imp;const wz=`<div class="wz" aria-label="${L('Import steps','خطوات الاستيراد')}">${WZ.map((w,i)=>`<span class="${i+1<I.step?'done':i+1===I.step?'cur':''}">${i+1}. ${T(w)}</span>`).join('')}</div>`;
+ const body=[null,impUpload,impMap,impReview,impConfirm,impResult][I.step]();
+ return `<div class="row" style="margin-bottom:4px"><h1>${L('Import financial data','استيراد البيانات المالية')}</h1></div><p class="sub" style="margin-bottom:14px">${L('Files are staged in isolation. Nothing is written to your official records until you confirm.','تُحفَظ الملفات في منطقة مؤقتة معزولة. لا يُكتب شيء في سجلاتك الرسمية حتى تؤكد.')}</p>${wz}${body}`}
+function impUpload(){const I=S.imp;
+ if(I.analyzing)return `<div class="card card-b" style="padding:24px" aria-busy="true"><div class="row" style="margin-bottom:16px"><span class="spin"></span><strong>${S.aiAvail?L('AI is analyzing your files…','يقوم الذكاء الاصطناعي بتحليل ملفاتك…'):L('Parsing files…','جارٍ تحليل الملفات…')}</strong></div>${[1,2,3].map(()=>`<div class="skel" style="height:44px;margin-bottom:10px"></div>`).join('')}</div>`;
+ return `<button class="drop" onclick="addFiles()"><div class="ico-tile" style="margin:0 auto 10px">${icon('upload',22)}</div><strong>${L('Choose CSV files','اختر ملفات CSV')}</strong><div class="small muted">${L('Demo: adds three sample files from Petra Digital','عرض تجريبي: يضيف ثلاثة ملفات نموذجية من بترا الرقمية')}</div></button>
+ <div class="row" style="margin:10px 0 16px"><button class="link small" onclick="S.imp.unsupported=true;render()">${L('Try an unsupported file (demo)','جرّب ملفًا غير مدعوم (عرض تجريبي)')}</button></div>
+ ${I.unsupported?`<div class="note bad" role="alert" style="margin-bottom:14px">${icon('alert',18)}<div><strong class="num" dir="ltr">obligations_2026.csv</strong> — ${L('Financial obligations can\'t be imported by CSV in this version. Add them with the manual form instead.','لا يمكن استيراد الالتزامات المالية عبر CSV في هذا الإصدار. أضفها بالنموذج اليدوي بدلًا من ذلك.')} <button class="link" onclick="S.imp.unsupported=false;render()">${L('Dismiss','إخفاء')}</button></div></div>`:''}
+ ${I.files.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${L('File','الملف')}</th><th>${L('Declared type','النوع المحدَّد')}</th><th>${L('Rows','الصفوف')}</th><th></th></tr></thead><tbody>${I.files.map((f,i)=>`<tr><td><span class="num" dir="ltr">${f.name}</span></td><td><select aria-label="${L('Declared type','النوع المحدَّد')}" onchange="S.imp.files[${i}].type=this.value">${Object.keys(FT).map(k=>`<option value="${k}" ${f.type===k?'selected':''}>${T(FT[k])}</option>`).join('')}</select></td><td class="num">${f.rows}</td><td><button class="btn sm ghost" onclick="S.imp.files.splice(${i},1);render()" aria-label="${L('Remove','إزالة')}">${icon('close',15)}</button></td></tr>`).join('')}</tbody></table></div>`:`<div class="note info">${icon('info',18)}<span>${L('Supported: transactions, customer invoices, supplier invoices. You can upload just one — other data can stay "Not Provided" or be marked "Confirmed None".','المدعوم: المعاملات، فواتير العملاء، فواتير الموردين. يمكنك رفع ملف واحد فقط — يمكن أن تبقى البيانات الأخرى "غير مُقدَّمة" أو تُحدَّد "لا يوجد (مؤكَّد)".')}</span></div>`}
+ <div class="row" style="margin-top:18px">${S.impInApp?'':`<button class="btn ghost" onclick="go('method')">${L('Back','رجوع')}</button>`}<div class="spacer"></div><button class="btn primary" ${I.files.length?'':'disabled'} onclick="analyze()">${L('Analyze Files','تحليل الملفات')}</button></div>`}
+function addFiles(){S.imp.files=SAMPLE_FILES.map(f=>({...f}));render()}
+function analyze(){S.imp.analyzing=true;render();setTimeout(()=>{S.imp.analyzing=false;S.imp.step=2;S.imp.mapTab=0;render()},1100)}
+function mapRows(type){const I=S.imp;return MAP[type].map((m,i)=>{const key=type+i;const manual=I.manualMap[key];const val=manual!==undefined?manual:(S.aiAvail?m[2]:'');return{h:m[0],sample:m[1],val,conf:S.aiAvail&&manual===undefined?m[3]:null,amb:m[4]&&S.aiAvail,key}})}
+function mapBlocking(){const I=S.imp;let n=0;I.files.forEach(f=>mapRows(f.type).forEach(r=>{if(!r.val)n++}));if(I.files.some(f=>f.type==='trx')&&!I.dirConv)n++;return n}
+function impMap(){const I=S.imp;const f=I.files[I.mapTab];const rows=mapRows(f.type);const opts=Object.keys(FIELDS).filter(k=>MAP[f.type].some(m=>m[2]===k)||k==='ignore');const blk=mapBlocking();
+ return `${S.aiAvail?'':`<div class="note warn" style="margin-bottom:12px">${icon('alert',18)}<span>${L('AI is unavailable right now. Map each column manually — import, validation and calculations still work.','الذكاء الاصطناعي غير متاح حاليًا. اربط كل عمود يدويًا — يستمر الاستيراد والتحقق والحسابات بالعمل.')}</span></div>`}
+ <div class="tabs" role="tablist">${I.files.map((x,i)=>`<button role="tab" aria-selected="${i===I.mapTab}" onclick="S.imp.mapTab=${i};render()">${T(FT[x.type])} <span class="muted num" dir="ltr">(${x.name})</span></button>`).join('')}</div>
+ <div class="tbl-wrap"><table class="tbl"><thead><tr><th>${L('Original header','العنوان الأصلي')}</th><th>${L('Sample value','قيمة نموذجية')}</th><th>${L('Maps to field','يُربط بالحقل')}</th><th>${L('AI confidence','ثقة الذكاء الاصطناعي')}</th></tr></thead><tbody>
+ ${rows.map(r=>`<tr class="${!r.val?'r-err':r.amb?'r-dup':''}"><td><strong class="num" dir="ltr">${r.h}</strong></td><td class="muted num" dir="ltr">${r.sample}</td><td><select aria-label="${L('Field for','الحقل لـ')} ${r.h}" onchange="S.imp.manualMap['${r.key}']=this.value;render()"><option value="">${L('Select field…','اختر الحقل…')}</option>${opts.map(k=>`<option value="${k}" ${r.val===k?'selected':''}>${T(FIELDS[k])}</option>`).join('')}</select></td><td>${r.conf!=null?`<span class="conf ${r.conf<80?'low':''}"><i><b style="width:${r.conf}%"></b></i><span class="num">${r.conf}%</span></span>`:`<span class="muted small">${S.aiAvail?L('Manual','يدوي'):'—'}</span>`}</td></tr>`).join('')}
+ </tbody></table></div>
+ ${f.type==='trx'?`<div class="card card-b" style="margin-top:14px;border-color:${I.dirConv?'var(--line)':'#E5C27F'}"><div class="row" style="margin-bottom:8px">${I.dirConv?`<span class="pill p-ok">${icon('check',13)}${L('Resolved','تم الحل')}</span>`:`<span class="pill p-warn">${L('Needs your decision','يحتاج إلى قرارك')}</span>`}<strong>${L('What does "D" in the Dr/Cr column mean?','ماذا يعني "D" في عمود Dr/Cr؟')}</strong></div>
+ <p class="small muted" style="margin-bottom:10px">${L('The AI isn\'t sure (62%). Amount direction is never guessed — please confirm.','الذكاء الاصطناعي غير متأكد (62%). لا يُخمَّن اتجاه المبلغ أبدًا — يُرجى التأكيد.')}</p>
+ <div class="row"><label class="check"><input type="radio" name="dc" ${I.dirConv==='out'?'checked':''} onchange="S.imp.dirConv='out';render()">${L('D = cash OUT (debit to bank statement)','D = نقد خارج')}</label><label class="check"><input type="radio" name="dc" ${I.dirConv==='in'?'checked':''} onchange="S.imp.dirConv='in';render()">${L('D = cash IN','D = نقد داخل')}</label></div></div>`:''}
+ <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="S.imp.step=1;render()">${L('Back','رجوع')}</button><div class="spacer"></div>${blk?`<span class="small" style="color:var(--warn)">${blk} ${L('item(s) still need a decision','عنصر/عناصر ما زالت بحاجة إلى قرار')}</span>`:''}<button class="btn primary" ${blk?'disabled':''} onclick="S.imp.step=3;S.imp.tab=S.imp.files[0].type;render()">${L('Confirm mapping','تأكيد الربط')}</button></div>`}
+
+/* review (FL-07) */
+const okDate=d=>/^\d{4}-\d{2}-\d{2}$/.test(d)&&!isNaN(new Date(d));
+function rowErrors(type,r){const e={};const n=v=>Number(String(v).replace(/,/g,''));
+ if(type==='trx'){if(!okDate(r.date))e.date=L('Date is required (YYYY-MM-DD).','التاريخ مطلوب (YYYY-MM-DD).');if(!(n(r.amount)>0))e.amount=L('Amount must be a positive number.','يجب أن يكون المبلغ رقمًا موجبًا.')}
+ if(type==='ar'){const g=n(r.sub)*(1+n(r.tax)/100);if(!(n(r.sub)>0))e.sub=L('Subtotal must be positive.','يجب أن يكون المجموع موجبًا.');if(n(r.paid)<0||n(r.paid)>g+0.001)e.paid=L('Paid-to-date must be between 0 and the gross amount','يجب أن يكون المدفوع بين 0 والمبلغ الإجمالي')+` (JOD ${fmt(g)}).`;if(!okDate(r.due))e.due=L('Valid due date required.','تاريخ استحقاق صالح مطلوب.')}
+ if(type==='ap'){if(!(n(r.gross)>0))e.gross=L('Gross must be positive.','يجب أن يكون الإجمالي موجبًا.');if(n(r.paid)<0||n(r.paid)>n(r.gross))e.paid=L('Paid-to-date can\'t exceed the gross amount','لا يمكن أن يتجاوز المدفوع المبلغ الإجمالي')+` (JOD ${fmt(n(r.gross))}).`;if(!okDate(r.due))e.due=L('Valid due date required.','تاريخ استحقاق صالح مطلوب.')}
+ return e}
+function impIssues(){const I=S.imp;let errs=0,dups=0;I.files.forEach(f=>I.rows[f.type].forEach(r=>{errs+=Object.keys(rowErrors(f.type,r)).length;if(r.dupOf&&!I.dup[f.type+r.id])dups++}));return{errs,dups}}
+function editCell(t,id,k,v){const r=S.imp.rows[t].find(x=>x.id===id);r[k]=v;S.imp.validated=false;valBanner()}
+function setDup(t,id,v){S.imp.dup[t+id]=v;S.imp.validated=false;valBanner()}
+function valBanner(){const el=$('#valBanner');if(el)el.innerHTML=valBannerHTML();const b=$('#toConfirm');if(b)b.disabled=!S.imp.validated}
+function valBannerHTML(){const I=S.imp;if(I.validated)return `<div class="note ok">${icon('check',18)}<span>${L('All staged rows are valid and every duplicate has a decision. Ready to confirm.','جميع الصفوف المؤقتة صالحة ولكل تكرار قرار. جاهز للتأكيد.')}</span></div>`;
+ const {errs,dups}=impIssues();if(I.checked)return `<div class="note ${errs||dups?'bad':'warn'}" role="status">${icon('alert',18)}<span>${errs||dups?`${errs} ${L('field error(s) and','خطأ/أخطاء في الحقول و')} ${dups} ${L('duplicate decision(s) remaining. Fix them, then validate again.','قرار/قرارات تكرار متبقية. أصلحها ثم تحقّق مجددًا.')}`:L('You made edits — click Validate again before continuing.','أجريت تعديلات — اضغط "تحقّق" مرة أخرى قبل المتابعة.')}</span></div>`;
+ return `<div class="note info">${icon('info',18)}<span>${L('Highlighted rows need attention. Duplicates are never removed automatically — choose what to do with each one, then click Validate.','الصفوف المميَّزة تحتاج إلى انتباه. لا تُحذف التكرارات تلقائيًا أبدًا — اختر ما تريد فعله بكل منها، ثم اضغط "تحقّق".')}</span></div>`}
+function validateImp(){const {errs,dups}=impIssues();S.imp.checked=true;S.imp.validated=!errs&&!dups;render();announce(S.imp.validated?L('Validation passed','نجح التحقق'):L('Validation found issues','وجد التحقق مشكلات'))}
+function cellIn(t,r,k,errs,o={}){const bad=errs[k]?'bad':'';return `<input class="${bad}" value="${esc(r[k])}" ${o.dir?'dir="ltr"':''} aria-label="${o.label||k}" ${errs[k]?`aria-invalid="true" title="${esc(errs[k])}"`:''} oninput="editCell('${t}',${r.id},'${k}',this.value)">`}
+function impReview(){const I=S.imp;const t=I.tab;const rows=I.rows[t];
+ const cols={trx:[['date',L('Date','التاريخ'),1],['desc',L('Description','الوصف')],['amount',L('Amount','المبلغ'),1],['dir',L('Dir.','الاتجاه'),1],['cat',L('Category','الفئة')],['cls',L('Cash-flow class','تصنيف التدفق')]],
+  ar:[['ref',L('Ref','المرجع'),1],['cust',L('Customer','العميل')],['due',L('Due','الاستحقاق'),1],['sub',L('Subtotal','قبل الضريبة'),1],['tax',L('Tax %','الضريبة %'),1],['paid',L('Paid-to-date','المدفوع'),1]],
+  ap:[['ref',L('Ref','المرجع'),1],['sup',L('Supplier','المورد')],['due',L('Due','الاستحقاق'),1],['gross',L('Gross','الإجمالي'),1],['paid',L('Paid-to-date','المدفوع'),1],['ctype',L('Cost class','تصنيف التكلفة')]]}[t];
+ const total=I.files.find(f=>f.type===t)?.rows||0;
+ return `<div id="valBanner" style="margin-bottom:12px">${valBannerHTML()}</div>
+ <div class="tabs" role="tablist">${I.files.map(f=>{const n=I.rows[f.type].filter(r=>Object.keys(rowErrors(f.type,r)).length||(r.dupOf&&!I.dup[f.type+r.id])).length;return `<button role="tab" aria-selected="${t===f.type}" onclick="S.imp.tab='${f.type}';render()">${T(FT[f.type])} ${n?`<span class="pill p-bad">${n}</span>`:''}</button>`}).join('')}</div>
+ <p class="small muted" style="margin-bottom:8px">${L('Showing the rows that need review and a sample of the rest','عرض الصفوف التي تحتاج مراجعة وعينة من الباقي')} · <span class="num">${total}</span> ${L('rows in file','صفًا في الملف')}</p>
+ <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}<th>${L('Status','الحالة')}</th></tr></thead><tbody>
+ ${rows.map(r=>{const e=rowErrors(t,r);const dup=r.dupOf;const ek=Object.keys(e);
+  return `<tr class="${ek.length?'r-err':dup?'r-dup':''}"><td class="num muted">${r.id}</td>${cols.map(c=>`<td class="${['desc','cust','sup'].includes(c[0])?'wide-c':''}">${cellIn(t,r,c[0],e,{dir:c[2],label:c[1]+' '+r.id})}</td>`).join('')}
+  <td style="min-width:220px">${ek.map(k=>`<div class="err">${icon('alert',14)}<span>${e[k]}</span></div>`).join('')}
+  ${dup?`<div class="small" style="margin-bottom:6px"><span class="pill ${r.dupKind==='exact'?'p-bad':'p-warn'}">${r.dupKind==='exact'?L('Exact duplicate','تكرار مطابق'):L('Possible duplicate','تكرار محتمل')}</span> ${L('of row','للصف')} ${r.dupOf}</div><select aria-label="${L('Duplicate decision','قرار التكرار')}" onchange="setDup('${t}',${r.id},this.value)"><option value="">${L('Choose…','اختر…')}</option><option value="keep" ${I.dup[t+r.id]==='keep'?'selected':''}>${L('Keep both — separate items','الإبقاء على الاثنين — بندان منفصلان')}</option><option value="exclude" ${I.dup[t+r.id]==='exclude'?'selected':''}>${L('Exclude this row','استبعاد هذا الصف')}</option></select>`:''}
+  ${!ek.length&&!dup?`<span class="pill p-ok">${icon('check',12)}${L('Ready','جاهز')}</span>`:''}</td></tr>`}).join('')}
+ </tbody></table></div>
+ <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="S.imp.step=2;render()">${L('Back','رجوع')}</button><div class="spacer"></div><button class="btn" onclick="validateImp()">${icon('check',16)}${L('Validate','تحقّق')}</button><button class="btn primary" id="toConfirm" ${I.validated?'':'disabled'} onclick="S.imp.step=4;render()">${L('Continue','متابعة')}</button></div>`}
+function impCounts(){const I=S.imp;const c={};I.files.forEach(f=>{const ex=I.rows[f.type].filter(r=>I.dup[f.type+r.id]==='exclude').length;c[f.type]={total:f.rows-ex,ex}});return c}
+function impConfirm(){const I=S.imp;const c=impCounts();const tot=Object.values(c).reduce((a,b)=>a+b.total,0);
+ if(I.processing)return `<div class="card card-b" style="padding:28px" aria-busy="true"><div class="row"><span class="spin"></span><strong>${L('Re-validating and committing in one transaction…','إعادة التحقق والحفظ ضمن معاملة واحدة…')}</strong></div></div>`;
+ return `<div class="statgrid">${Object.keys(c).map(k=>`<div class="card stat"><div class="small muted">${T(FT[k])}</div><div class="v num">${c[k].total}</div><div class="tiny muted">${c[k].ex?`${c[k].ex} ${L('excluded duplicate','تكرار مستبعد')}`:L('No exclusions','لا استبعادات')}</div></div>`).join('')}</div>
+ <div class="card card-b" style="margin-top:14px"><h3 style="margin-bottom:10px">${L('Before you import','قبل الاستيراد')}</h3><ul class="list">
+ <li>${icon('cash',18)}<span>${L('Only transactions change actual cash. Paid-to-date on invoices updates balances owed, never cash.','المعاملات فقط تغيّر النقد الفعلي. المدفوع حتى تاريخه في الفواتير يحدّث الأرصدة المستحقة فقط، وليس النقد.')}</span></li>
+ <li>${icon('report',18)}<span>${L('Invoices affect recognized revenue and expenses — profit is not the same as cash.','تؤثر الفواتير على الإيرادات والمصروفات المعترف بها — الربح ليس هو النقد.')}</span></li>
+ <li>${icon('admin',18)}<span>${L('All-or-nothing: if any row fails at commit, nothing is imported and your draft is kept.','الكل أو لا شيء: إذا فشل أي صف عند الحفظ، لا يُستورد شيء وتبقى المسودة محفوظة.')}</span></li>
+ ${S.policy&&S.role!=='CEO'?`<li>${icon('lock',18)}<span>${L('Your company requires CEO approval for imports. This batch will be submitted for approval and won\'t be official until approved.','تتطلب شركتك موافقة الرئيس التنفيذي على الاستيراد. ستُرسل هذه الدفعة للموافقة ولن تكون رسمية قبل اعتمادها.')}</span></li>`:''}
+ </ul></div>
+ <label class="check" style="margin-top:14px"><input type="checkbox" ${I.failSim?'checked':''} onchange="S.imp.failSim=this.checked">${L('Simulate a database failure at commit (demo)','محاكاة فشل في قاعدة البيانات عند الحفظ (عرض تجريبي)')}</label>
+ <div class="row" style="margin-top:18px"><button class="btn ghost" onclick="S.imp.step=3;render()">${L('Back','رجوع')}</button><div class="spacer"></div><button class="btn primary lg" onclick="commitImp()">${S.policy&&S.role!=='CEO'?L('Submit for CEO approval','إرسال لموافقة الرئيس التنفيذي'):L('Confirm & Import','تأكيد واستيراد')} <span class="num">(${tot})</span></button></div>`}
+function commitImp(){const I=S.imp;I.processing=true;render();setTimeout(()=>{I.processing=false;
+ if(I.failSim){I.result={ok:false};I.step=5;render();return}
+ if(S.policy&&S.role!=='CEO'){S.approvals.unshift({id:'APR-'+(312+S.approvals.length),by:ROLES[S.role][2],type:['CSV import batch','دفعة استيراد CSV'],ref:I.files.map(f=>f.name).join(', '),field:['Records','السجلات'],before:'—',after:String(Object.values(impCounts()).reduce((a,b)=>a+b.total,0)),reason:['Monthly import','استيراد شهري'],on:AS_OF,status:'pending',mine:true});I.result={ok:true,pending:true};I.step=5;render();return}
+ const c=impCounts();I.files.forEach(f=>{const g={trx:'D2',ar:'D3',ap:'D4'}[f.type];S.groups[g]='entered';S.counts[g]+=c[f.type].total});
+ I.result={ok:true,counts:c};I.step=5;S.updating=true;render();
+ setTimeout(()=>{S.updating=false;S.snap={v:S.snap.v+1,at:new Date().toISOString(),why:'import'};render()},1800)},1200)}
+function impResult(){const I=S.imp,r=I.result;
+ if(!r.ok)return `<div class="card card-b" style="padding:26px"><div class="note bad" role="alert" style="margin-bottom:16px">${icon('alert',18)}<div><strong>${L('Import rolled back — 0 records were committed.','تم التراجع عن الاستيراد — لم يُحفظ أي سجل.')}</strong><br>${L('A database error happened during commit. Your official records are unchanged and your reviewed draft is kept so you can retry.','حدث خطأ في قاعدة البيانات أثناء الحفظ. سجلاتك الرسمية لم تتغير ومسودتك المُراجعة محفوظة لتعيد المحاولة.')}</div></div><button class="btn primary" onclick="S.imp.failSim=false;S.imp.step=4;render()">${L('Back to confirmation','العودة إلى التأكيد')}</button></div>`;
+ if(r.pending)return `<div class="card card-b" style="padding:26px"><div class="note warn" style="margin-bottom:16px">${icon('lock',18)}<div><strong>${L('Pending CEO approval','بانتظار موافقة الرئيس التنفيذي')}</strong><br>${L('The batch is saved as a request. It won\'t appear in reports or KPIs until the CEO approves it.','حُفظت الدفعة كطلب. لن تظهر في التقارير أو المؤشرات حتى يوافق عليها الرئيس التنفيذي.')}</div></div><button class="btn primary" onclick="S.screen='app';S.page='summary';render()">${L('Back to Summary','العودة إلى الملخص')}</button></div>`;
+ const tot=Object.values(r.counts).reduce((a,b)=>a+b.total,0);
+ return `<div class="card card-b" style="padding:26px"><div class="note ok" style="margin-bottom:16px">${icon('check',18)}<div><strong><span class="num">${tot}</span> ${L('records committed in one batch.','سجلًا حُفظت في دفعة واحدة.')}</strong><br>${Object.keys(r.counts).map(k=>`${T(FT[k])}: <span class="num">${r.counts[k].total}</span>`).join(' · ')}</div></div>
+ <div class="snap" aria-live="polite">${S.updating?`<span class="spin"></span>${L('Updating metrics… recalculating all 33 KPIs from the new records.','جارٍ تحديث المؤشرات… إعادة احتساب جميع المؤشرات الـ33 من السجلات الجديدة.')}`:`${icon('check',16)}${L('Metrics snapshot','لقطة المؤشرات')} v${S.snap.v} ${L('calculated','احتُسبت')} · ${DT(new Date(S.snap.at))}`}</div>
+ <div class="row" style="margin-top:16px">${S.impInApp?`<button class="btn primary" onclick="S.screen='app';S.page='summary';render()">${L('Back to Summary','العودة إلى الملخص')}</button>`:`<button class="btn primary" onclick="go('readiness')">${L('Continue to Financial Readiness','المتابعة إلى الجاهزية المالية')}</button>`}</div></div>`}
+
+/* ---------- FL-09 manual hub ---------- */
+function rManual(){const items=[['D2','trx'],['D3','ar'],['D4','ap'],['D5','obl'],['ADJ','adj']];
+ return `<h1>${L('Start from scratch','البدء من الصفر')}</h1><p class="sub">${L('Add what you have. If a group truly has no records, confirm that — it is different from "not provided yet".','أضف ما لديك. إذا لم تكن لدى مجموعة أي سجلات فعلًا، فأكّد ذلك — وهذا يختلف عن "لم تُقدَّم بعد".')}</p>
+ <div class="rd-list">${items.map(([g,f])=>{const isAdj=g==='ADJ';const st=isAdj?(S.counts.ADJ?'entered':'np'):S.groups[g];const s=STATUS[st];
+ return `<div class="card rd"><div class="code">${isAdj?'ADJ':g}</div><div><strong>${isAdj?L('Accounting adjustments (optional)','التسويات المحاسبية (اختيارية)'):T(GROUPS[g])}</strong><div class="small muted">${isAdj?L('Non-cash entries such as depreciation. Never change actual cash.','قيود غير نقدية مثل الإهلاك. لا تغيّر النقد الفعلي أبدًا.'):`${S.counts[g]} ${L('records','سجل')}`}</div></div>
+ <div class="row"><span class="pill ${isAdj&&!S.counts.ADJ?'p-neutral':s[2]}">${isAdj&&!S.counts.ADJ?L('Optional','اختياري'):L(s[0],s[1])}</span><button class="btn sm" onclick="openForm('${f}')">${icon('plus',15)}${L('Add record','إضافة سجل')}</button>${isAdj?'':`<button class="btn sm ghost" onclick="S.groups.${g}='none';render()">${L('We have none','لا يوجد لدينا')}</button>`}</div></div>`}).join('')}</div>
+ <div class="row" style="margin-top:20px"><button class="btn ghost" onclick="go('method')">${L('Back','رجوع')}</button><div class="spacer"></div><button class="btn primary lg" onclick="go('readiness')">${L('Continue','متابعة')}</button></div>`}
+
+/* ---------- FL-10 readiness ---------- */
+function rReadiness(){const avail=KPIS.filter(k=>!missing(k[3]).length);const un=KPIS.filter(k=>missing(k[3]).length);
+ return `<h1>${L('Financial readiness','الجاهزية المالية')}</h1><p class="sub">${L('Here\'s what FinPilot can calculate with the data you\'ve provided. You can go to the Summary now and add more later.','إليك ما يستطيع FinPilot احتسابه بالبيانات التي قدّمتها. يمكنك الانتقال إلى الملخص الآن وإضافة المزيد لاحقًا.')}</p>
+ <div class="rd-list">${Object.keys(GROUPS).map(g=>{const st=S.groups[g];const s=STATUS[st];
+  const act=g==='D1'?(st==='attention'?`<button class="btn sm" onclick="go('finance')">${L('Add opening cash','إضافة النقد الافتتاحي')}</button>`:''):(st==='np'?`<button class="btn sm" onclick="openForm('${{D2:'trx',D3:'ar',D4:'ap',D5:'obl'}[g]}')">${icon('plus',15)}${L('Add records','إضافة سجلات')}</button><button class="btn sm ghost" onclick="S.groups.${g}='none';render()">${L('Confirm none','تأكيد عدم الوجود')}</button>`:'');
+  const desc=g==='D1'?(st==='attention'?L('Opening cash is unknown — never treated as JOD 0.','النقد الافتتاحي غير معروف — لا يُعامَل أبدًا على أنه 0 دينار.'):L('Currency, fiscal year and opening cash saved.','تم حفظ العملة والسنة المالية والنقد الافتتاحي.')):st==='none'?L('You confirmed there are no records — values count as zero.','أكّدت عدم وجود سجلات — تُحتسب القيم صفرًا.'):st==='np'?L('Unknown — dependent KPIs show "Insufficient Data", not zero.','غير معروف — تظهر المؤشرات المعتمدة بحالة "بيانات غير كافية"، وليس صفرًا.'):`${S.counts[g]} ${L('records','سجل')}`;
+  return `<div class="card rd"><div class="code">${g}</div><div><strong>${T(GROUPS[g])}</strong><div class="small muted">${desc}</div></div><div class="row"><span class="pill ${s[2]}">${L(s[0],s[1])}</span>${act}</div></div>`}).join('')}</div>
+ <div class="card card-b" style="margin-top:16px"><div class="row" style="margin-bottom:6px"><h3>${L('KPI coverage','تغطية المؤشرات')}</h3><span class="pill ${un.length?'p-warn':'p-ok'}"><span class="num">${avail.length}</span> / 33 ${L('available','متاح')}</span></div>
+ ${un.length?`<p class="small muted" style="margin-bottom:8px">${L('These will show "Insufficient Data" on the Summary and in reports:','ستظهر هذه بحالة "بيانات غير كافية" في الملخص والتقارير:')}</p><div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>${L('KPI','المؤشر')}</th><th>${L('Missing','الناقص')}</th></tr></thead><tbody>${un.map(k=>`<tr><td class="num muted">${k[0]}</td><td>${L(k[1],k[2])}</td><td>${missing(k[3]).map(g=>`<span class="pill p-neutral" style="margin:1px">${g} · ${T(GROUPS[g])}</span>`).join(' ')}</td></tr>`).join('')}</tbody></table></div>`:`<p class="small">${L('All 33 KPIs can be calculated.','يمكن احتساب جميع المؤشرات الـ33.')}</p>`}</div>
+ <div class="row" style="margin-top:20px"><button class="btn ghost" onclick="go('method')">${L('Add more data','إضافة مزيد من البيانات')}</button><div class="spacer"></div><button class="btn primary lg" onclick="enterApp()">${L('Go to Summary','الانتقال إلى الملخص')}${icon('chev',16)}</button></div>`}
+function enterApp(){S.role='CEO';S.screen='app';S.page='summary';S.sumState='normal';S.focusNext='main';render();window.scrollTo(0,0)}
+
+/* =========================================================
+   APP SHELL (§7.1, §4.6)
+   ========================================================= */
+function rShell(){const r=ROLES[S.role];const p=canPage(S.page)?S.page:'denied';const pg=PAGES[S.page]||PAGES.summary;
+ const nav=NAV[S.role].map(n=>n[0]==='g'?`<div class="nav-g">${T(n[1])}</div>`:`<button class="nav-i ${n[1]?'sub':''}" ${S.page===n[0]?'aria-current="page"':''} onclick="nav('${n[0]}')">${n[1]?'':icon(PAGES[n[0]].ic,18)}${L(PAGES[n[0]].en,PAGES[n[0]].ar)}</button>`).join('');
+ const alerts=okG('D3')?ALERTS().length:0;
+ return `<div class="shell">${S.sidebarOpen?`<div class="scrim" style="z-index:64" onclick="S.sidebarOpen=false;render()"></div>`:''}
+ <nav class="sidebar ${S.sidebarOpen?'open':''}" aria-label="${L('Main navigation','التنقل الرئيسي')}"><div class="brand">${logo()}<span>FinPilot AI</span></div>${nav}
+ <div class="side-foot">${L('Signed in as','مسجّل الدخول باسم')} <strong>${r[2]}</strong><br>${L(r[0],r[1])}</div></nav>
+ <div class="main"><header class="topbar"><button class="iconbtn hamb" onclick="S.sidebarOpen=true;render()" aria-label="${L('Open menu','فتح القائمة')}">${icon('menu')}</button>
+ <span class="co">${esc(S.companyName)}</span><span class="pg hide-m">/ ${L(pg.en,pg.ar)}</span><div class="spacer"></div>
+ ${(S.page==='summary'||S.page==='charts')&&p!=='denied'?`<label class="sr" for="per">${L('Reporting period','فترة التقرير')}</label><select id="per" class="tb-sel" onchange="S.period=this.value;render()">${Object.keys(PERIODS).map(k=>`<option value="${k}" ${S.period===k?'selected':''}>${pLabel(k)}</option>`).join('')}</select>`:''}
+ <label class="small muted hide-m" for="viewas">${L('View as','عرض كـ')}</label><select id="viewas" class="tb-sel" onchange="setRole(this.value)">${Object.keys(ROLES).map(k=>`<option value="${k}" ${S.role===k?'selected':''}>${L(ROLES[k][0],ROLES[k][1])}</option>`).join('')}</select>
+ ${langBtn()}
+ ${canCreate()?`<div class="menu-wrap"><button class="btn primary sm" aria-haspopup="menu" aria-expanded="${S.menu==='create'}" onclick="toggleMenu('create')">${icon('plus',16)}<span class="hide-m">${L('New','جديد')}</span></button>${S.menu==='create'?`<div class="menu" role="menu">${[['trx',L('Cash transaction','معاملة نقدية')],['ar',L('Customer invoice','فاتورة عميل')],['ap',L('Supplier invoice','فاتورة مورد')],['obl',L('Financial obligation','التزام مالي')],['adj',L('Accounting adjustment','تسوية محاسبية')]].map(x=>`<button role="menuitem" onclick="S.menu=null;openForm('${x[0]}')">${icon('plus',15)}${x[1]}</button>`).join('')}<button role="menuitem" onclick="S.menu=null;startImport()">${icon('upload',15)}${L('Import CSV','استيراد CSV')}</button></div>`:''}</div>`:''}
+ ${canPage('alerts')?`<button class="iconbtn" onclick="openDrawer('notif')" aria-label="${L('Notifications','الإشعارات')}${alerts?`, ${alerts}`:''}">${icon('bell')}${alerts?`<span class="dot">${alerts}</span>`:''}</button>`:''}
+ <div class="menu-wrap"><button class="avatar" style="border:0;cursor:pointer" aria-haspopup="menu" aria-expanded="${S.menu==='prof'}" onclick="toggleMenu('prof')" aria-label="${L('Profile menu','قائمة الملف الشخصي')}">${r[3]}</button>${S.menu==='prof'?`<div class="menu" role="menu"><div style="padding:8px 10px"><strong>${r[2]}</strong><div class="small muted">${L(r[0],r[1])}</div></div><button role="menuitem" onclick="S.menu=null;nav('profile')">${icon('user',16)}${L('My Profile & Security','ملفي الشخصي والأمان')}</button><button role="menuitem" onclick="logout()">${icon('close',16)}${L('Log out','تسجيل الخروج')}</button></div>`:''}</div>
+ </header><main class="content" id="main" tabindex="-1">${rPage(p)}</main></div></div>`}
+function nav(p){S.page=p;S.sidebarOpen=false;S.menu=null;S.overlay=null;S.focusNext='main';render();window.scrollTo(0,0)}
+function toggleMenu(m){S.menu=S.menu===m?null:m;render()}
+function setRole(r){S.role=r;if(S.screen==='app'){S.page=LANDING[r];S.overlay=null;S.menu=null}render();toast(L('Viewing as ','العرض كـ ')+L(ROLES[r][0],ROLES[r][1]))}
+function logout(){S.menu=null;toast(L('You have been logged out.','تم تسجيل خروجك.'));S.login={email:'',pw:'',err:''};go('landing')}
+function startImport(){S.imp=freshImp();S.impInApp=true;S.page='import';S.overlay=null;render()}
+function rPage(p){
+ if(p==='summary')return rSummary();
+ if(p==='import')return rImport(true);
+ if(p==='charts')return rAllCharts();
+ if(p==='states')return rStates();
+ if(p==='denied')return rDenied(S.page);
+ return rPlaceholder(p)}
+function rDenied(target){const pg=PAGES[target]||{};const admin=S.role==='Admin';
+ return `<div class="card denied" role="alert"><div class="lock">${icon('lock',26)}</div><h2>${L('You don\'t have access to this page','ليست لديك صلاحية الوصول إلى هذه الصفحة')}</h2>
+ <p class="muted">${L(pg.en||'This page',pg.ar||'هذه الصفحة')} ${L('requires a permission that isn\'t granted to your account. The server rejects the request too — hiding the menu item is only a convenience.','تتطلب صلاحية غير ممنوحة لحسابك. يرفض الخادم الطلب أيضًا — إخفاء عنصر القائمة مجرد تسهيل.')}</p>
+ ${admin?`<div class="note info" style="text-align:start">${icon('info',18)}<span>${L('As Company Admin you can grant this to yourself in My Permissions. Every self-grant is recorded in the audit log.','بصفتك مسؤول الشركة يمكنك منح هذه الصلاحية لنفسك من "صلاحياتي". يُسجَّل كل منح ذاتي في سجل التدقيق.')}</span></div><button class="btn primary" onclick="nav('myperms')">${L('Open My Permissions','فتح صلاحياتي')}</button>`:`<p class="small muted">${L('Ask your CEO or Company Admin for access.','اطلب الصلاحية من الرئيس التنفيذي أو مسؤول الشركة.')}</p><button class="btn" onclick="nav(LANDING[S.role])">${L('Go to my start page','الانتقال إلى صفحتي الرئيسية')}</button>`}</div>`}
+function rPlaceholder(p){const pg=PAGES[p];return `<div class="page-h"><h1>${L(pg.en,pg.ar)}</h1></div>
+ <div class="card card-b" style="padding:28px;margin-top:14px"><div class="row" style="margin-bottom:10px"><span class="pill p-neutral num" dir="ltr">${pg.route}</span>${pg.spec?`<span class="pill p-info">${pg.spec}</span>`:''}</div>
+ <p>${L('This screen is planned for a later design round. The navigation and access rules for your role are live, so you can see which modules each role reaches.','هذه الشاشة مخطط لها في جولة تصميم لاحقة. التنقل وقواعد الوصول لدورك مفعّلة، لترى الوحدات التي يصل إليها كل دور.')}</p>
+ ${p==='profile'&&S.role==='Consultant'?`<div class="note info" style="margin-top:14px">${icon('info',18)}<span>${L('Consultants start with profile access only. Financial modules appear here once the CEO or an Admin grants specific read permissions.','يبدأ المستشارون بالوصول إلى الملف الشخصي فقط. تظهر الوحدات المالية هنا بعد أن يمنح الرئيس التنفيذي أو المسؤول صلاحيات قراءة محددة.')}</span></div>`:''}
+ ${p==='myperms'?`<div class="note info" style="margin-top:14px">${icon('info',18)}<span>${L('Financial modules are hidden for Admins by default. Self-granting e.g. summary.read would add Summary to this sidebar.','الوحدات المالية مخفية افتراضيًا عن المسؤولين. منح الذات صلاحية مثل summary.read يضيف الملخص إلى هذا الشريط الجانبي.')}</span></div>`:''}</div>`}
+
+/* =========================================================
+   SUMMARY (§7.2, FL-19)
+   ========================================================= */
+const ALERTS=()=>[
+ {id:'a1',sev:'high',t:['Projected cash shortfall','عجز نقدي متوقع'],d:[`90-day forecast falls to JOD −1,390 on ${D('2027-01-30')}.`,`ينخفض توقع الـ90 يومًا إلى −1,390 د.أ في ${D('2027-01-30')}.`],src:['Cash-flow forecast · 90 days','توقع التدفق النقدي · 90 يومًا'],page:'forecast',kpi:29},
+ {id:'a2',sev:'high',t:['Overdue customer invoices','فواتير عملاء متأخرة'],d:['JOD 26,300 is past due across 3 invoices.','26,300 د.أ متأخرة عبر 3 فواتير.'],src:['Customer invoices','فواتير العملاء'],page:'ar',kpi:20},
+ {id:'a3',sev:'med',t:['Overdue supplier bill SB-1038','فاتورة مورد متأخرة SB-1038'],d:[`JOD 1,600 to Al-Noor Office Supplies, due ${D('2026-10-28')}.`,`1,600 د.أ لشركة النور للقرطاسية، مستحقة في ${D('2026-10-28')}.`],src:['Supplier invoices','فواتير الموردين'],page:'ap',kpi:24},
+ {id:'a4',sev:'med',t:['Cash below threshold within 30 days','النقد دون الحد خلال 30 يومًا'],d:[`Lowest point JOD 920 on ${D('2026-11-10')} — threshold JOD 2,000.`,`أدنى نقطة 920 د.أ في ${D('2026-11-10')} — الحد 2,000 د.أ.`],src:['Cash-flow forecast · 30 days','توقع التدفق النقدي · 30 يومًا'],page:'forecast',kpi:25}];
+const scopeTag={period:()=>`<span class="pill p-period">${icon('task',12)}${pLabel()}</span>`,asof:()=>`<span class="pill p-asof">${L('As of','حتى')} ${D(AS_OF)}</span>`,fc:h=>`<span class="pill p-fc">${L('Forecast','توقع')} · ${h} ${L('days','يومًا')}</span>`};
+function kpiCards(){const ytd=!PERIODS[S.period].idx;
+ const defs=[
+  {k:'cash',id:1,n:['Current Cash','رصيد النقد الحالي'],scope:'asof',deps:['D1','D2'],v:cashNow(),sub:()=>L('Opening cash + all cash IN − OUT','النقد الافتتاحي + كل الداخل − الخارج')},
+  {k:'rev',id:7,n:['Revenue','الإيرادات'],scope:'period',deps:['D3'],v:pv('rev'),cmp:'rev'},
+  {k:'np',id:15,n:['Net Profit','صافي الربح'],scope:'period',deps:['D3','D4','D5'],v:pv('np'),cmp:'np'},
+  {k:'ncf',id:4,n:['Net Cash Flow','صافي التدفق النقدي'],scope:'period',deps:['D2'],v:pv('ncf'),cmp:'ncf'},
+  {k:'exp',id:9,n:['Total Expenses','إجمالي المصروفات'],scope:'period',deps:['D4','D5'],v:pv('exp'),cmp:'exp',inv:true},
+  {k:'run',id:6,n:['Cash Runway','مدة كفاية النقد'],scope:'asof',deps:['D1','D2'],v:runway().v,unit:'mo'}];
+ return defs.map(d=>{const miss=missing(d.deps);let body;
+  if(S.sumState==='loading')return `<div class="kpi" aria-busy="true"><div class="skel" style="height:14px;width:55%"></div><div class="skel" style="height:30px;width:70%;margin:6px 0"></div><div class="skel" style="height:12px;width:40%"></div></div>`;
+  if(miss.length)body=`<div class="insuf">${icon('alert',18)}${L('Insufficient Data','بيانات غير كافية')}</div><div class="foot">${L('Needs','يتطلب')}: ${miss.map(g=>T(GROUPS[g])).join(', ')}</div>`;
+  else if(d.scope==='period'&&ytd)body=`<div class="insuf">${icon('alert',18)}${L('Insufficient Data','بيانات غير كافية')}</div><div class="foot">${L('Records start Jun 2026 — YTD 2026 needs Jan–May.','تبدأ السجلات في يونيو 2026 — يتطلب "منذ بداية 2026" بيانات يناير–مايو.')}</div>`;
+  else if(d.k==='run'){body=d.v==null?`<div class="val">${L('N/A','غير متاح')}</div><div class="foot">${L('No net cash burn in the last 3 months','لا يوجد استنزاف نقدي صافٍ في آخر 3 أشهر')}</div>`:`<div class="val num">≈ ${d.v.toFixed(1)} <span style="font-size:16px;font-weight:500">${L('months','أشهر')}</span></div><div class="foot">${L('Estimate · avg. net burn','تقدير · متوسط الاستنزاف')} ${money(runway().burn)}/${L('mo','شهر')} (${L('Aug–Oct','أغسطس–أكتوبر')})</div>`}
+  else{const pv_=d.cmp?prevVal(d.cmp):null;let delta='';if(pv_!=null&&pv_!==0){const diff=d.v-pv_;const good=d.inv?diff<0:diff>0;const pctOk=pv_>0&&d.v>0;delta=`<span class="${good?'delta-up':'delta-dn'} num" dir="ltr">${diff>=0?'▲':'▼'} ${pctOk?Math.abs(diff/pv_*100).toFixed(1)+'%':'JOD '+fmt(diff)}</span> ${L('vs previous month','مقارنة بالشهر السابق')}`}else if(d.cmp)delta=L('No comparable prior period','لا توجد فترة سابقة قابلة للمقارنة');
+   body=`<div class="val ${d.v<0?'neg':''}">${money(d.v)}</div><div class="foot">${delta||(d.sub?d.sub():'')}</div>`}
+  return `<button class="kpi ${S.updating?'busy':''}" onclick="openDrawer('kpi','${d.k}')" aria-label="${T(d.n)} — ${L('open formula and evidence','فتح المعادلة والأدلة')}"><div class="lbl"><span>${T(d.n)}</span>${scopeTag[d.scope]()}</div>${body}</button>`}).join('')}
+function snapBar(){if(S.updating)return `<div class="snap" role="status"><span class="badge-official">${L('OFFICIAL','رسمي')}</span><span class="spin"></span><strong>${L('Updating metrics…','جارٍ تحديث المؤشرات…')}</strong><span class="muted">${L('Showing snapshot','عرض اللقطة')} v${S.snap.v} ${L('until the recalculation finishes.','حتى تنتهي إعادة الاحتساب.')}</span></div>`;
+ const why={daily:L('daily run','التشغيل اليومي'),save:L('after a saved change','بعد حفظ تغيير'),import:L('after CSV import','بعد استيراد CSV'),approval:L('after an approved change','بعد اعتماد تغيير')}[S.snap.why];
+ return `<div class="snap"><span class="badge-official">${L('OFFICIAL','رسمي')}</span><span>${L('Metrics snapshot','لقطة المؤشرات')} <strong class="num">v${S.snap.v}</strong></span><span class="muted">·</span><span>${L('Last calculated','آخر احتساب')} <strong>${DT(new Date(S.snap.at))}</strong> (${why})</span><span class="muted">·</span><span class="muted">${L('Data as of','البيانات حتى')} ${D(AS_OF)}</span></div>`}
+function rSummary(){const loading=S.sumState==='loading';const ceo=S.role==='CEO';const empty=S.sumState==='empty';
+ const hello=`<div class="page-h"><div><h1>${L('Summary','الملخص')}</h1><p class="muted small">${esc(S.companyName)} · ${L('Recalculated after every committed change and once a day.','يُعاد الاحتساب بعد كل تغيير معتمد ومرة يوميًا.')}</p></div></div>`;
+ const emptyBanner=empty?`<div class="card empty" style="margin-top:14px"><div class="ico-tile">${icon('records',22)}</div><h3>${L('No financial records yet','لا توجد سجلات مالية بعد')}</h3><p class="small muted" style="max-width:520px">${L('Your workspace is ready. Values that depend on records show "Insufficient Data" rather than zero until you add or import data, or confirm a group has none.','مساحة عملك جاهزة. تظهر القيم المعتمدة على السجلات بحالة "بيانات غير كافية" بدلًا من الصفر حتى تضيف البيانات أو تستوردها، أو تؤكد عدم وجود سجلات لمجموعة ما.')}</p>${canCreate()?`<div class="row"><button class="btn primary" onclick="startImport()">${icon('upload',16)}${L('Import CSV','استيراد CSV')}</button><button class="btn" onclick="openForm('trx')">${icon('plus',16)}${L('Add a transaction','إضافة معاملة')}</button></div>`:''}</div>`:'';
+ const sec=(n,en,ar,extra='')=>`<div class="sec-title"><span class="n">${n}</span><h2>${L(en,ar)}</h2><div class="spacer"></div>${extra}</div>`;
+ return `${hello}${loading?`<div class="snap" aria-busy="true"><span class="spin"></span>${L('Loading summary…','جارٍ تحميل الملخص…')}</div>`:snapBar()}${emptyBanner}
+ ${sec(1,'Financial Snapshot','اللقطة المالية')}<div class="kpis" ${S.updating?'aria-busy="true"':''}>${kpiCards()}</div>
+ ${sec(2,'Financial Analytics','التحليلات المالية',`<button class="btn sm ghost" onclick="resetSlots()">${L('Reset Default Charts','استعادة الرسوم الافتراضية')}</button><button class="btn sm" onclick="nav('charts')">${L('View All Charts','عرض جميع الرسوم')}</button>`)}
+ <div class="charts">${S.slots.map((id,i)=>chartCard(id,i)).join('')}</div>
+ ${sec(3,'Receivables & Payables','الذمم المدينة والدائنة')}${rRP()}
+ ${sec(4,'Forecast & Liquidity','التوقعات والسيولة',`<div class="seg" role="group" aria-label="${L('Forecast horizon','أفق التوقع')}">${[30,90].map(h=>`<button aria-pressed="${S.horizon===h}" onclick="S.horizon=${h};render()">${h} ${L('days','يومًا')}</button>`).join('')}</div>`)}${rFL()}
+ ${sec(5,'Financial Alerts & Risks','التنبيهات والمخاطر المالية',ceo?`<button class="btn sm ghost" onclick="nav('alerts')">${L('All alerts','كل التنبيهات')}</button>`:'')}${rAlerts()}
+ ${sec(6,'AI Financial Insights','رؤى مالية بالذكاء الاصطناعي')}${rAI()}
+ ${sec(7,ceo?'Tasks & Approvals':'My Tasks & Requests',ceo?'المهام والموافقات':'مهامي وطلباتي')}${rTasks()}`}
+
+/* section 3 */
+function rRP(){if(S.sumState==='loading')return skelRow(3);const d3=okG('D3'),d4=okG('D4'),d5=okG('D5');
+ const ins=(m)=>`<div class="insuf" style="color:var(--warn);font-weight:600;display:flex;gap:6px;align-items:center">${icon('alert',16)}${L('Insufficient Data','بيانات غير كافية')}</div><div class="tiny muted">${m}</div>`;
+ return `<div class="cols3">
+ <button class="card mini kpi" onclick="nav('ar')"><div class="lbl"><span>${L('Unpaid customer invoices','فواتير العملاء غير المدفوعة')}</span>${scopeTag.asof()}</div>${d3?`<div class="v">${money(30300)}</div><div class="small"><span style="color:var(--neg)">${money(26300)}</span> ${L('overdue','متأخرة')}</div>`:ins(T(GROUPS.D3))}</button>
+ <button class="card mini kpi" onclick="nav('ap')"><div class="lbl"><span>${L('Unpaid supplier bills','فواتير الموردين غير المدفوعة')}</span>${scopeTag.asof()}</div>${d4?`<div class="v">${money(4960)}</div><div class="small"><span style="color:var(--neg)">${money(1600)}</span> ${L('overdue','متأخرة')}</div>`:ins(T(GROUPS.D4))}</button>
+ <button class="card mini kpi" onclick="nav('obl')"><div class="lbl"><span>${L('Upcoming payments','الدفعات القادمة')}</span><span class="pill p-fc">${L('Next 30 days','الـ30 يومًا القادمة')}</span></div>${d4&&d5?`<div class="v">${money(14810)}</div><div class="tiny muted">${L('Not-yet-due bills + obligations. Excludes the overdue JOD 1,600 bill (KPI #23).','فواتير غير مستحقة بعد + التزامات. تستثني الفاتورة المتأخرة بقيمة 1,600 د.أ (المؤشر 23).')}</div>`:ins([!d4&&T(GROUPS.D4),!d5&&T(GROUPS.D5)].filter(Boolean).join(', '))}</button></div>
+ ${d3&&d4&&d5?`<div class="card card-b" style="margin-top:14px"><h3 style="margin-bottom:6px">${L('Top due items','أهم البنود المستحقة')}</h3><ul class="list">${[
+  ['SB-1038 · Al-Noor Office Supplies','SB-1038 · النور للقرطاسية',1600,'2026-10-28','over','ap'],
+  ['Office rent – November','إيجار المكتب – نوفمبر',2200,'2026-11-10','due','obl'],
+  ['Payroll – November (total)','الرواتب – نوفمبر (الإجمالي)',8500,'2026-11-25','due','obl'],
+  ['Loan installment','قسط القرض',750,'2026-12-01','due','obl']].map(x=>`<li><span class="sev ${x[4]==='over'?'high':'low'}" aria-hidden="true"></span><span style="flex:1">${L(x[0],x[1])}</span>${x[4]==='over'?`<span class="pill p-bad">${L('Overdue since','متأخرة منذ')} ${DS(x[3])}</span>`:`<span class="pill p-neutral">${L('Due','تستحق')} ${DS(x[3])}</span>`}${money(x[2])}<button class="btn sm ghost" onclick="nav('${x[5]}')" aria-label="${L('Open','فتح')}">${icon('chev',15)}</button></li>`).join('')}</ul></div>`:''}`}
+/* section 4 */
+function rFL(){if(S.sumState==='loading')return skelRow(4);if(missing(['D1','D2','D3','D4','D5']).length)return `<div class="card card-b"><div class="note warn">${icon('alert',18)}<span>${L('Insufficient Data for an official forecast. Missing:','بيانات غير كافية لتوقع رسمي. الناقص:')} ${missing(['D1','D2','D3','D4','D5']).map(g=>T(GROUPS[g])).join(', ')}.</span></div></div>`;
+ const f=FCS[S.horizon];
+ return `<div class="kpis k4">
+ ${[[L('Closing cash','النقد الختامي'),money(f.end,f.end<0?'delta-dn':''),`KPI #${S.horizon===30?25:26}`],[L('Expected inflows','التدفقات الداخلة المتوقعة'),money(f.in),'KPI #27'],[L('Expected outflows','التدفقات الخارجة المتوقعة'),money(f.out),'KPI #28'],[L('Lowest balance','أدنى رصيد'),money(f.low,f.low<0?'delta-dn':''),D(f.lowOn)]].map(x=>`<div class="card mini"><div class="small muted">${x[0]}</div><div class="v">${x[1]}</div><div class="tiny muted">${x[2]}</div></div>`).join('')}</div>
+ <div class="card card-b" style="margin-top:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">${f.short?`<span class="pill p-bad">${icon('alert',13)}${L('First shortfall','أول عجز')}</span><span>${L('Cash is projected to go negative on','يُتوقع أن يصبح النقد سالبًا في')} <strong>${D(f.short.on)}</strong> (${money(f.short.amt,'delta-dn')}).</span>`:`<span class="pill p-ok">${L('No shortfall in 30 days','لا عجز خلال 30 يومًا')}</span><span class="small">${L('But the balance dips to','لكن الرصيد ينخفض إلى')} ${money(920)} ${L('on','في')} ${D('2026-11-10')}.</span>`}
+ <div class="spacer"></div><span class="tiny muted">${L('Expected Outflows include the overdue bill the company expects to settle; Upcoming Payments do not — don\'t add them together.','تشمل التدفقات الخارجة المتوقعة الفاتورة المتأخرة المتوقع سدادها؛ ولا تشملها الدفعات القادمة — لا تجمعهما معًا.')}</span><button class="btn sm" onclick="nav('forecast')">${L('Open forecast','فتح التوقعات')}</button></div>`}
+/* section 5 */
+function rAlerts(){if(S.sumState==='loading')return skelRow(1);if(S.sumState==='empty')return `<div class="card empty"><p class="small muted">${L('No alerts — monitoring starts once records exist.','لا توجد تنبيهات — تبدأ المراقبة عند وجود سجلات.')}</p></div>`;
+ return `<div class="card card-b"><ul class="list">${ALERTS().map(a=>`<li><span class="sev ${a.sev}" aria-hidden="true"></span><span class="pill ${a.sev==='high'?'p-bad':'p-warn'}">${a.sev==='high'?L('High','مرتفع'):L('Medium','متوسط')}</span><span style="flex:1"><strong>${T(a.t)}</strong><br><span class="small muted">${T(a.d)}</span></span><button class="btn sm" onclick="openDrawer('alert','${a.id}')">${L('Details','التفاصيل')}</button></li>`).join('')}</ul>
+ <p class="tiny muted" style="margin-top:8px">${L('Deterministic rules only (overdue, upcoming, shortfall, threshold). No anomaly detection.','قواعد محددة فقط (التأخر، القادم، العجز، الحد). لا يوجد كشف للحالات الشاذة.')}</p></div>`}
+/* section 6 */
+function rAI(){if(S.sumState==='loading')return skelRow(1);
+ if(!S.aiAvail)return `<div class="card card-b"><div class="note warn">${icon('ai',18)}<span>${L('AI insights are temporarily unavailable. All verified figures on this page are unaffected and still accurate.','رؤى الذكاء الاصطناعي غير متاحة مؤقتًا. جميع الأرقام الموثّقة في هذه الصفحة غير متأثرة وما زالت دقيقة.')}</span></div></div>`;
+ if(missing(['D2','D3','D4','D5']).length)return `<div class="card card-b"><p class="small muted">${L('Insights appear once there\'s enough verified data to explain.','تظهر الرؤى عند توفر بيانات موثّقة كافية للشرح.')}</p></div>`;
+ return `<div class="card card-b ai-card"><div class="row" style="margin-bottom:8px"><span class="ico-tile" style="width:32px;height:32px">${icon('ai',18)}</span><strong>${L('Profit is positive, but cash is falling','الربح موجب، لكن النقد يتراجع')}</strong><span class="pill p-period">${L('Oct 2026','أكتوبر 2026')}</span></div>
+ <p>${L('October closed with a net profit of','أُغلق أكتوبر بصافي ربح')} ${money(3590)} ${L('while net cash flow was','بينما كان صافي التدفق النقدي')} ${money(-2350,'delta-dn')}. ${L('The main driver is','السبب الرئيسي هو')} ${money(26300)} ${L('of overdue customer invoices. Collecting INV-2041 would lift the 10 Nov low point above your JOD 2,000 threshold.','من فواتير العملاء المتأخرة. تحصيل الفاتورة INV-2041 سيرفع أدنى نقطة في 10 نوفمبر فوق حد 2,000 د.أ لديك.')}</p>
+ <div class="row" style="margin-top:12px"><button class="btn sm" onclick="openDrawer('aihow')">${L('How calculated','كيف احتُسب')}</button>${canPage('advisor')?`<button class="btn sm primary" onclick="nav('advisor')">${icon('ai',15)}${L('Ask FinPilot','اسأل FinPilot')}</button>`:''}<span class="tiny muted">${L('Numbers come from the KPI engine; the AI only explains them.','الأرقام من محرّك المؤشرات؛ والذكاء الاصطناعي يشرحها فقط.')}</span></div></div>`}
+/* section 7 */
+function rTasks(){if(S.sumState==='loading')return skelRow(2);const ceo=S.role==='CEO';
+ const myTasks=S.tasks.filter(t=>ceo||t.who==='Rania Haddad');
+ const tl=`<div class="card card-b"><h3 style="margin-bottom:6px">${L('My tasks','مهامي')}</h3><ul class="list">${myTasks.map(t=>`<li><span style="flex:1">${T(t.t)}<br><span class="tiny muted">${L('Assigned to','مُسندة إلى')} ${t.who} · ${L('due','تستحق')} ${DS(t.due)}</span></span><span class="pill ${t.st==='progress'?'p-info':'p-neutral'}">${t.st==='progress'?L('In progress','قيد التنفيذ'):L('Open','مفتوحة')}</span></li>`).join('')}</ul></div>`;
+ const pend=S.approvals;
+ const al=`<div class="card card-b"><h3 style="margin-bottom:6px">${ceo?L('Pending approvals','الموافقات المعلقة'):L('My requests','طلباتي')}</h3>${pend.length?`<ul class="list">${pend.map(a=>`<li><span style="flex:1"><strong>${T(a.type)}</strong> · <span class="num" dir="ltr">${esc(a.ref)}</span><br><span class="tiny muted">${ceo?`${L('Requested by','طلبها')} ${a.by} · `:''}${DS(a.on)}</span></span>${a.status==='pending'?`<span class="pill p-warn">${L('Pending CEO approval','بانتظار موافقة الرئيس التنفيذي')}</span>`:a.status==='approved'?`<span class="pill p-ok">${L('Approved','مُعتمَد')}</span>`:`<span class="pill p-bad">${L('Rejected','مرفوض')}</span>`}${ceo&&a.status==='pending'?`<button class="btn sm" onclick="openDrawer('apr','${a.id}')">${L('Review','مراجعة')}</button>`:`<button class="btn sm ghost" onclick="openDrawer('apr','${a.id}')">${L('View','عرض')}</button>`}</li>`).join('')}</ul>`:`<p class="small muted">${L('Nothing waiting.','لا شيء بانتظار القرار.')}</p>`}</div>`;
+ return `<div class="cols2">${tl}${al}</div>`}
+const skelRow=n=>`<div class="cols${n>=3?3:2}" aria-busy="true">${Array.from({length:Math.max(2,Math.min(n,3))},()=>`<div class="card card-b"><div class="skel" style="height:14px;width:50%;margin-bottom:12px"></div><div class="skel" style="height:26px;width:70%"></div></div>`).join('')}</div>`;
+
+/* =========================================================
+   CHARTS (§7.3 — 22 subjects)
+   ========================================================= */
+const CATS={bp:['Business Performance','أداء الأعمال'],cl:['Cash & Liquidity','النقد والسيولة'],io:['Invoices & Obligations','الفواتير والالتزامات'],fc:['Forecasting','التوقعات']};
+function fcDef(h,lite){const pts=h===30?FC.slice(0,11):FC;return{kind:'line',labels:pts.map(p=>DS(p[0])),unit:'JOD',threshold:lite?null:2000,series:[{name:L('Projected cash','النقد المتوقع'),data:pts.map(p=>p[1]),color:'var(--c1)'}]}}
+function SUBJ(){const ml=M.map(ML);const np=H.rev.map((r,i)=>r-H.exp[i]);const ncf=H.rec.map((r,i)=>r-H.paid[i]+(i===4?S.octIn-S.octOut:0));
+ const rw=runway();
+ return [
+ {id:'rev_vs_exp',cat:'bp',t:['Revenue vs Expenses','الإيرادات مقابل المصروفات'],deps:['D3','D4','D5'],scope:'hist',def:{kind:'bar',labels:ml,unit:'JOD',series:[{name:L('Revenue','الإيرادات'),data:H.rev,color:'var(--c1)'},{name:L('Total expenses','إجمالي المصروفات'),data:H.exp,color:'var(--c2)'}]}},
+ {id:'rev_growth',cat:'bp',t:['Revenue Growth Trend','اتجاه نمو الإيرادات'],deps:['D3'],scope:'hist',def:{kind:'line',labels:ml.slice(1),unit:'%',series:[{name:L('Month-on-month growth','النمو الشهري'),data:[8.2,6.5,2.4,6.0],color:'var(--c1)'}]}},
+ {id:'net_profit',cat:'bp',t:['Net Profit Trend','اتجاه صافي الربح'],deps:['D3','D4','D5'],scope:'hist',def:{kind:'line',labels:ml,unit:'JOD',series:[{name:L('Net profit','صافي الربح'),data:np,color:'var(--c1)'}]}},
+ {id:'profit_cmp',cat:'bp',t:['Gross / Operating / Net Profit','مجمل / تشغيلي / صافي الربح'],deps:['D3','D4','D5'],scope:'oct',def:{kind:'bar',labels:[L('Gross','المجمل'),L('Operating (EBIT)','التشغيلي'),L('Net','الصافي')],unit:'JOD',series:[{name:L('Oct 2026','أكتوبر 2026'),data:[15640,4240,3590],color:'var(--c1)'}]}},
+ {id:'margins',cat:'bp',t:['Profit Margins Comparison','مقارنة هوامش الربح'],deps:['D3','D4','D5'],scope:'oct',def:{kind:'bar',labels:[L('Gross','المجمل'),L('Operating','التشغيلي'),L('Net','الصافي')],unit:'%',series:[{name:L('Oct 2026','أكتوبر 2026'),data:[68.0,18.4,15.6],color:'var(--c1)'}]}},
+ {id:'exp_cat',cat:'bp',t:['Expenses by Category','المصروفات حسب الفئة'],deps:['D4','D5'],scope:'oct',def:{kind:'hbar',unit:'JOD',items:[[L('Direct costs','تكاليف مباشرة'),7360],[L('Salaries','الرواتب'),7200],[L('Rent','الإيجار'),2200],[L('Software','البرمجيات'),900],[L('Interest & income tax','الفوائد وضريبة الدخل'),650],[L('Depreciation & amortization','الإهلاك والإطفاء'),600],[L('Marketing','التسويق'),500]]}},
+ {id:'rev_cat',cat:'bp',t:['Revenue by Category','الإيرادات حسب الفئة'],deps:['D3'],scope:'oct',def:{kind:'hbar',unit:'JOD',items:[[L('Software development','تطوير البرمجيات'),12500],[L('Cloud services','الخدمات السحابية'),6300],[L('Consulting','الاستشارات'),4200]]}},
+ {id:'ncf_trend',cat:'cl',t:['Net Cash Flow Trend','اتجاه صافي التدفق النقدي'],deps:['D2'],scope:'hist',def:{kind:'bar',labels:ml,unit:'JOD',series:[{name:L('Net cash flow','صافي التدفق النقدي'),data:ncf,signed:true}]}},
+ {id:'cash_rp',cat:'cl',t:['Cash Received vs Cash Paid','النقد المستلَم مقابل المدفوع'],deps:['D2'],scope:'hist',def:{kind:'bar',labels:ml,unit:'JOD',series:[{name:L('Received','المستلَم'),data:H.rec.map((v,i)=>v+(i===4?S.octIn:0)),color:'var(--c1)'},{name:L('Paid','المدفوع'),data:H.paid.map((v,i)=>v+(i===4?S.octOut:0)),color:'var(--c2)'}]}},
+ {id:'hist_cash',cat:'cl',t:['Historical Cash Balance','الرصيد النقدي التاريخي'],deps:['D1','D2'],scope:'hist',def:{kind:'line',labels:ml,unit:'JOD',series:[{name:L('Month-end cash','النقد في نهاية الشهر'),data:H.cashEnd,color:'var(--c1)'}]}},
+ {id:'ocf_trend',cat:'cl',t:['Operating Cash Flow Trend','اتجاه التدفق النقدي التشغيلي'],deps:['D2'],scope:'hist',def:{kind:'bar',labels:ml,unit:'JOD',series:[{name:L('Operating cash flow','التدفق النقدي التشغيلي'),data:H.ocf,signed:true}]}},
+ {id:'runway_trend',cat:'cl',t:['Cash Runway Trend','اتجاه مدة كفاية النقد'],deps:['D1','D2'],scope:'hist',note:L('Sep 2026 is N/A: average net flow was not a burn (no denominator).','سبتمبر 2026 غير متاح: لم يكن متوسط صافي التدفق استنزافًا (لا يوجد مقام).'),def:{kind:'line',labels:ml.slice(2),unit:'mo',series:[{name:L('Runway (months)','مدة الكفاية (أشهر)'),data:[15.8,null,rw.v?+rw.v.toFixed(1):null],color:'var(--c1)'}]}},
+ {id:'ar_ap',cat:'io',t:['Receivables vs Payables','الذمم المدينة مقابل الدائنة'],deps:['D3','D4'],scope:'asof',def:{kind:'bar',labels:[L('Receivables','الذمم المدينة'),L('Payables','الذمم الدائنة')],unit:'JOD',series:[{name:L('As of 6 Nov','حتى 6 نوفمبر'),data:[30300,4960],colors:['var(--c1)','var(--c2)']}]}},
+ {id:'ar_aging',cat:'io',t:['Customer Receivables Aging','أعمار ذمم العملاء'],deps:['D3'],scope:'asof',note:L('Current snapshot only. Historical aging can\'t be rebuilt without dated payment events.','لقطة حالية فقط. لا يمكن إعادة بناء الأعمار التاريخية دون أحداث دفع مؤرخة.'),def:{kind:'hbar',unit:'JOD',items:[[L('Not yet due','غير مستحقة بعد'),4000],[L('1–30 days overdue','متأخرة 1–30 يومًا'),14500],[L('31–60 days','31–60 يومًا'),7800],[L('61+ days','61 يومًا فأكثر'),4000]]}},
+ {id:'ap_aging',cat:'io',t:['Supplier Payables Aging','أعمار ذمم الموردين'],deps:['D4'],scope:'asof',note:L('Current snapshot only.','لقطة حالية فقط.'),def:{kind:'hbar',unit:'JOD',items:[[L('Not yet due','غير مستحقة بعد'),3360],[L('1–30 days overdue','متأخرة 1–30 يومًا'),1600]]}},
+ {id:'upcoming',cat:'io',t:['Upcoming Payments Breakdown','تفصيل الدفعات القادمة'],deps:['D4','D5'],scope:'next30',note:L('Excludes overdue SB-1038 (JOD 1,600) by its original due date.','تستثني SB-1038 المتأخرة (1,600 د.أ) حسب تاريخ استحقاقها الأصلي.'),def:{kind:'hbar',unit:'JOD',items:[[L('Payroll (total)','الرواتب (إجمالي)'),8500],[L('Supplier bills not yet due','فواتير موردين غير مستحقة'),3360],[L('Rent','الإيجار'),2200],[L('Loan installment','قسط القرض'),750]]}},
+ {id:'ar_by_cust',cat:'io',t:['Outstanding Invoices by Customer','الفواتير المستحقة حسب العميل'],deps:['D3'],scope:'asof',def:{kind:'hbar',unit:'JOD',items:[['Zarqa Logistics',11200],['Aqaba Retail Group',8600],['Irbid Medical Center',6500],['Amman Learning Hub',4000]]}},
+ {id:'tax',cat:'io',t:['Tax Payments & Liabilities','المدفوعات والالتزامات الضريبية'],deps:['D2','D5'],scope:'hist',note:L('Tax payable as of 6 Nov: JOD 1,240 (from obligations).','الضريبة المستحقة حتى 6 نوفمبر: 1,240 د.أ (من الالتزامات).'),def:{kind:'bar',labels:ml.slice(2),unit:'JOD',series:[{name:L('Tax paid (cash)','الضريبة المدفوعة (نقدًا)'),data:[800,820,950],color:'var(--c3)'}]}},
+ {id:'projected_balance',cat:'fc',t:['Projected Cash Balance','الرصيد النقدي المتوقع'],deps:['D1','D2','D3','D4','D5'],scope:'fc',def:null},
+ {id:'in_out',cat:'fc',t:['Expected Inflows vs Outflows','التدفقات الداخلة مقابل الخارجة المتوقعة'],deps:['D1','D2','D3','D4','D5'],scope:'fcboth',def:{kind:'bar',labels:[L('Next 30 days','الـ30 يومًا القادمة'),L('Next 90 days','الـ90 يومًا القادمة')],unit:'JOD',series:[{name:L('Expected IN','الداخل المتوقع'),data:[20200,52400],color:'var(--c1)'},{name:L('Expected OUT','الخارج المتوقع'),data:[16410,59010],color:'var(--c2)'}]}},
+ {id:'shortfall',cat:'fc',t:['Projected Cash Shortfall Timeline','الجدول الزمني للعجز النقدي المتوقع'],deps:['D1','D2','D3','D4','D5'],scope:'fc90',def:fcDef(90)},
+ {id:'scenario',cat:'fc',t:['Baseline vs Scenario Forecast','التوقع الأساسي مقابل السيناريو'],deps:['D1','D2','D3','D4','D5'],scope:'hypo',insuf:L('No saved scenario yet. Create one in the Financial Decision Lab to compare it with the official baseline.','لا يوجد سيناريو محفوظ بعد. أنشئ سيناريو في مختبر القرارات المالية لمقارنته بالخط الأساسي الرسمي.')}]}
+function subjById(id){return SUBJ().find(s=>s.id===id)}
+function scopePill(s){return{hist:`<span class="pill p-period">${L('Monthly · Jun–Oct 2026','شهري · يونيو–أكتوبر 2026')}</span>`,oct:`<span class="pill p-period">${L('Oct 2026','أكتوبر 2026')}</span>`,asof:scopeTag.asof(),next30:`<span class="pill p-fc">${L('Next 30 days','الـ30 يومًا القادمة')}</span>`,fc:scopeTag.fc(S.horizon),fc90:scopeTag.fc(90),fcboth:`<span class="pill p-fc">${L('Forecast','توقع')} · 30 / 90</span>`,hypo:`<span class="badge-hypo">${L('HYPOTHETICAL','افتراضي')}</span>`}[s.scope]||''}
+function chartBody(s,h,wide){const miss=missing(s.deps);
+ if(S.sumState==='loading')return `<div style="padding:12px 16px 18px"><div class="skel" style="height:190px"></div></div>`;
+ if(miss.length||s.insuf)return `<div class="empty" style="min-height:190px"><div class="insuf" style="color:var(--warn);font-weight:600;display:flex;gap:6px;align-items:center">${icon('alert',18)}${L('Insufficient Data','بيانات غير كافية')}</div><p class="small muted" style="max-width:420px">${s.insuf||L('Needs','يتطلب')+': '+miss.map(g=>T(GROUPS[g])).join(', ')}</p>${s.id==='scenario'&&canPage('lab')?`<button class="btn sm" onclick="nav('lab')">${L('Open Decision Lab','فتح مختبر القرارات')}</button>`:''}</div>`;
+ const def=s.id==='projected_balance'?fcDef(h||S.horizon):s.def;
+ return `${def.kind==='hbar'?hbars(def):svgChart(def,T(s.t),wide)}${def.kind!=='hbar'?legend(def):''}${s.note?`<p class="tiny muted" style="padding:0 16px 8px">${s.note}</p>`:''}${dataTable(def,T(s.t))}`}
+function chartCard(id,i){const s=subjById(id)||subjById('rev_vs_exp');
+ return `<section class="card chart-card ${i===2?'full':''}" aria-label="${T(s.t)}"><div class="ch-h"><h3>${T(s.t)}</h3>${scopePill(s)}<span class="badge-official" style="${s.scope==='hypo'?'display:none':''}">${L('OFFICIAL','رسمي')}</span><button class="btn sm" onclick="openLib(${i})">${icon('sliders',15)}${L('Change Chart','تغيير الرسم')}</button></div>${chartBody(s,null,i===2)}</section>`}
+function legend(def){if(def.series.length<2&&!def.series[0].signed&&!def.threshold)return'';return `<div class="legend">${def.series.map(s=>s.signed?`<span><i style="background:var(--pos)"></i>${L('Inflow','داخل')}</span><span><i style="background:var(--neg)"></i>${L('Outflow','خارج')}</span>`:`<span><i style="background:${s.color||'var(--c1)'}"></i>${s.name}</span>`).join('')}${def.threshold?`<span><i style="background:var(--warn)"></i>${L('Alert threshold','حد التنبيه')} JOD ${fmt(def.threshold)}</span>`:''}</div>`}
+function valFmt(v,u){if(v==null)return L('N/A','غير متاح');if(u==='%')return v.toFixed(1)+'%';if(u==='mo')return v.toFixed(1)+' '+L('mo','شهر');return(v<0?'−':'')+'JOD '+fmt(v)}
+function dataTable(def,title){const rows=def.kind==='hbar'?def.items.map(i=>[i[0],valFmt(i[1],def.unit)]):def.labels.map((l,i)=>[l,...def.series.map(s=>valFmt(s.data[i],def.unit))]);const heads=def.kind==='hbar'?[L('Item','البند'),L('Value','القيمة')]:['',...def.series.map(s=>s.name)];
+ return `<details class="data"><summary>${L('View data table','عرض جدول البيانات')}</summary><table class="tbl" style="margin-top:8px"><caption class="sr">${title}</caption><thead><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td class="${i?'num':''}" ${i?'dir="ltr"':''}>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`}
+function niceMax(v){if(v<=0)return 0;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+function shortN(n,u){if(u==='%')return Math.round(n)+'%';if(u==='mo')return String(Math.round(n));const a=Math.abs(n);return(n<0?'−':'')+(a>=1000?(a/1000).toFixed(a%1000===0?0:1)+'k':String(Math.round(a)))}
+function svgChart(def,title,wide){const W=wide?1100:640,Hh=wide?260:240,pl=50,pr=14,pt=14,pb=34;const all=def.series.flatMap(s=>s.data.filter(v=>v!=null)).concat(def.threshold?[def.threshold]:[]);
+ const rmax=Math.max(0,...all),rmin=Math.min(0,...all);const st=niceMax((rmax-rmin)/4)||1;let mx=Math.ceil(rmax/st)*st||st,mn=Math.floor(rmin/st)*st;
+ const y=v=>pt+(mx-v)/(mx-mn)*(Hh-pt-pb);const n=def.labels.length,cw=(W-pl-pr)/n;let g='';
+ for(let v=mn;v<=mx+1e-9;v+=st){g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" class="grid"/><text x="${pl-7}" y="${y(v)+4}" text-anchor="end">${shortN(v,def.unit)}</text>`}
+ if(mn<0)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(0)}" y2="${y(0)}" class="zero"/>`;
+ if(def.threshold)g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(def.threshold)}" y2="${y(def.threshold)}" class="thr"/>`;
+ const step=Math.ceil(n/8);
+ def.labels.forEach((l,i)=>{if(i%step===0||i===n-1)g+=`<text x="${pl+cw*i+cw/2}" y="${Hh-12}" text-anchor="middle">${l}</text>`});
+ if(def.kind==='bar'){const k=def.series.length,bw=Math.min(30,cw*.72/k);
+  def.series.forEach((s,si)=>s.data.forEach((v,i)=>{if(v==null)return;const x=pl+cw*i+cw/2-bw*k/2+si*bw;const y0=y(0),y1=y(v);const col=s.signed?(v<0?'var(--neg)':'var(--pos)'):(s.colors?s.colors[i]:s.color);
+   g+=`<rect x="${x+1.5}" y="${Math.min(y0,y1)}" width="${bw-3}" height="${Math.max(1.5,Math.abs(y1-y0))}" rx="3" fill="${col}"><title>${def.labels[i]} · ${s.name}: ${valFmt(v,def.unit)}</title></rect>`}))}
+ else{def.series.forEach(s=>{const pts=s.data.map((v,i)=>v==null?null:[pl+cw*i+cw/2,y(v)]);let d='',open=false;pts.forEach(p=>{if(!p){open=false;return}d+=(open?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);open=true});
+  g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.4" ${s.dash?'stroke-dasharray="6 4"':''}/>`;
+  pts.forEach((p,i)=>{if(!p){g+=`<text x="${pl+cw*i+cw/2}" y="${y(mn<0?0:mx/2)}" text-anchor="middle" style="fill:var(--warn);font-weight:600">${L('N/A','غير متاح')}</text>`;return}const v=s.data[i];g+=`<circle cx="${p[0]}" cy="${p[1]}" r="${n>12?2.6:3.6}" fill="${v<0?'var(--neg)':'#fff'}" stroke="${v<0?'var(--neg)':s.color}" stroke-width="2"><title>${def.labels[i]}: ${valFmt(v,def.unit)}</title></circle>`})})}
+ return `<svg class="chart-svg" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${esc(title||'')}" dir="ltr">${g}</svg>`}
+function hbars(def){const mx=Math.max(...def.items.map(i=>i[1]));return `<div class="hbars" style="padding:8px 16px">${def.items.map(i=>`<div class="hb"><span>${i[0]}</span><span class="track"><span class="bar" style="display:block;width:${(i[1]/mx*100).toFixed(1)}%"></span></span><span class="num" dir="ltr">${valFmt(i[1],def.unit)}</span></div>`).join('')}</div>`}
+function openLib(slot){S.overlay={type:'modal',kind:'lib',slot};S.focusNext='libFirst';render()}
+function setSlot(slot,id){S.slots[slot]=id;saveSlots();S.overlay=null;render();toast(L('Chart updated — saved for you only.','تم تحديث الرسم — محفوظ لك فقط.'))}
+function resetSlots(){S.slots=['rev_vs_exp','ncf_trend','projected_balance'];saveSlots();render();toast(L('Default charts restored.','تمت استعادة الرسوم الافتراضية.'))}
+function rAllCharts(){const all=SUBJ();return `<div class="page-h"><div><h1>${L('All Financial Charts','جميع الرسوم المالية')}</h1><p class="muted small">${L('22 financial subjects. A subject is what the chart measures — not just its style.','22 موضوعًا ماليًا. الموضوع هو ما يقيسه الرسم — وليس مجرد شكله.')}</p></div><div class="spacer"></div><button class="btn" onclick="nav('summary')">${L('Back to Summary','العودة إلى الملخص')}</button></div>
+ ${Object.keys(CATS).map(c=>`<div class="sec-title"><h2>${T(CATS[c])}</h2></div><div class="charts">${all.filter(s=>s.cat===c).map(s=>`<section class="card chart-card"><div class="ch-h"><h3>${T(s.t)}</h3>${scopePill(s)}<label class="sr" for="set_${s.id}">${L('Set on Summary','تعيين في الملخص')}</label><select id="set_${s.id}" class="tb-sel" onchange="if(this.value!=='')setSlot(+this.value,'${s.id}')"><option value="">${L('Set on Summary…','تعيين في الملخص…')}</option>${[0,1,2].map(i=>`<option value="${i}">${L('Slot','الموضع')} ${i+1}</option>`).join('')}</select></div>${chartBody(s)}</section>`).join('')}</div>`).join('')}`}
+
+/* =========================================================
+   OVERLAYS — drawers (details) & modals (create/edit)
+   ========================================================= */
+function openDrawer(kind,data){S.overlay={type:'drawer',kind,data};S.menu=null;S.focusNext='drClose';render()}
+function closeOv(){S.overlay=null;render()}
+function rOverlay(){const o=S.overlay;if(!o)return'';
+ if(o.type==='drawer'){const c=drawerContent(o);return `<div class="scrim" onclick="closeOv()"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drTitle"><div class="dr-h"><div style="flex:1">${c.pre||''}<h2 id="drTitle">${c.title}</h2>${c.sub?`<div class="small muted" style="margin-top:4px">${c.sub}</div>`:''}</div><button class="iconbtn" id="drClose" onclick="closeOv()" aria-label="${L('Close','إغلاق')}">${icon('close')}</button></div><div class="dr-b">${c.body}</div>${c.foot?`<div class="dr-f">${c.foot}</div>`:''}</aside>`}
+ if(o.kind==='lib')return `<div class="scrim" onclick="closeOv()"></div><div class="modal"><div class="box wide" role="dialog" aria-modal="true" aria-labelledby="libT"><div class="dr-h"><div style="flex:1"><h2 id="libT">${L('Chart library','مكتبة الرسوم')}</h2><div class="small muted">${L('Choose a financial subject for slot','اختر موضوعًا ماليًا للموضع')} ${o.slot+1}. ${L('Saved per user.','يُحفظ لكل مستخدم.')}</div></div><button class="iconbtn" onclick="closeOv()" aria-label="${L('Close','إغلاق')}">${icon('close')}</button></div><div class="dr-b">${Object.keys(CATS).map((c,ci)=>`<div class="lib-cat"><h4>${T(CATS[c])}</h4><div class="lib-grid">${SUBJ().filter(s=>s.cat===c).map((s,si)=>{const ok=!missing(s.deps).length&&!s.insuf;return `<button class="lib-item" ${ci===0&&si===0?'id="libFirst"':''} aria-current="${S.slots[o.slot]===s.id}" onclick="setSlot(${o.slot},'${s.id}')"><span>${T(s.t)}</span>${S.slots[o.slot]===s.id?`<span class="pill p-info">${L('Current','الحالي')}</span>`:ok?'':`<span class="pill p-warn">${L('Insufficient','غير كافية')}</span>`}</button>`}).join('')}</div></div>`).join('')}</div></div></div>`;
+ if(o.kind==='form')return rFormModal(o);return''}
+function drawerContent(o){
+ if(o.kind==='kpi')return kpiDrawer(o.data);
+ if(o.kind==='notif')return{title:L('Notifications','الإشعارات'),body:`<ul class="list">${ALERTS().map(a=>`<li><span class="sev ${a.sev}"></span><span style="flex:1"><strong>${T(a.t)}</strong><br><span class="small muted">${T(a.d)}</span></span><button class="btn sm" onclick="openDrawer('alert','${a.id}')">${L('Open','فتح')}</button></li>`).join('')}</ul>`};
+ if(o.kind==='alert'){const a=ALERTS().find(x=>x.id===o.data);return{pre:`<span class="pill ${a.sev==='high'?'p-bad':'p-warn'}">${a.sev==='high'?L('High severity','خطورة مرتفعة'):L('Medium severity','خطورة متوسطة')}</span>`,title:T(a.t),sub:`${L('Detected','اكتُشف')} ${DT(new Date('2026-11-06T02:00:00'))} · ${L('daily monitoring','المراقبة اليومية')}`,
+  body:`<p>${T(a.d)}</p><dl class="kv"><dt>${L('Source','المصدر')}</dt><dd>${T(a.src)}</dd><dt>${L('Related KPI','المؤشر المرتبط')}</dt><dd>#${a.kpi}</dd><dt>${L('Email','البريد')}</dt><dd>${a.sev==='high'?L('Sent to CEO','أُرسل إلى الرئيس التنفيذي'):L('In-app only','داخل التطبيق فقط')}</dd></dl><div class="note info">${icon('info',18)}<span>${L('Alerts never change financial records. Repeated conditions are de-duplicated.','لا تغيّر التنبيهات السجلات المالية أبدًا. تُدمج الحالات المتكررة.')}</span></div>`,
+  foot:`<button class="btn" onclick="closeOv();toast(L('Alert acknowledged (no financial effect).','تم الإقرار بالتنبيه (دون أثر مالي).'))">${L('Acknowledge','إقرار')}</button><button class="btn primary" onclick="nav('${a.page}')">${L('Open source','فتح المصدر')}</button>`}}
+ if(o.kind==='apr'){const a=S.approvals.find(x=>x.id===o.data);const ceo=S.role==='CEO';
+  return{pre:`<span class="pill ${a.status==='pending'?'p-warn':a.status==='approved'?'p-ok':'p-bad'}">${a.status==='pending'?L('Pending CEO approval','بانتظار موافقة الرئيس التنفيذي'):a.status==='approved'?L('Approved','مُعتمَد'):L('Rejected','مرفوض')}</span>`,title:`${T(a.type)} · <span class="num" dir="ltr">${esc(a.ref)}</span>`,sub:`${L('Requested by','طلبها')} ${a.by} · ${D(a.on)} · ${a.id}`,
+  body:`<table class="tbl"><thead><tr><th>${L('Field','الحقل')}</th><th>${L('Before','قبل')}</th><th>${L('After','بعد')}</th></tr></thead><tbody><tr><td>${T(a.field)}</td><td class="num" dir="ltr">${esc(a.before)}</td><td class="num" dir="ltr"><strong>${esc(a.after)}</strong></td></tr></tbody></table>
+  <div><div class="small muted">${L('Reason','السبب')}</div><p>${T(a.reason)}</p></div>
+  <div class="note info">${icon('info',18)}<span>${L('Not posted yet. If approved, the change is re-validated against the current record, committed once, and metrics are recalculated.','لم يُرحَّل بعد. عند الاعتماد، يُعاد التحقق من التغيير مقابل السجل الحالي، ويُحفظ مرة واحدة، ثم يُعاد احتساب المؤشرات.')}</span></div>
+  <dl class="kv"><dt>${L('Policy','السياسة')}</dt><dd class="num" dir="ltr">approval-policy v3</dd></dl>`,
+  foot:ceo&&a.status==='pending'?`<button class="btn danger" onclick="decide('${a.id}','rejected')">${L('Reject','رفض')}</button><button class="btn primary" onclick="decide('${a.id}','approved')">${L('Approve','اعتماد')}</button>`:`<span class="small muted">${ceo?'':L('Only the CEO can approve or reject.','الرئيس التنفيذي وحده يمكنه الاعتماد أو الرفض.')}</span>`}}
+ if(o.kind==='aihow')return{title:L('How this insight was calculated','كيف احتُسبت هذه الرؤية'),body:`<p class="small">${L('The AI called trusted KPI tools and only explains their results. It cannot change records.','استدعى الذكاء الاصطناعي أدوات مؤشرات موثوقة ويشرح نتائجها فقط. لا يمكنه تغيير السجلات.')}</p>
+  <table class="tbl"><thead><tr><th>${L('Tool call','استدعاء الأداة')}</th><th>${L('Result','النتيجة')}</th></tr></thead><tbody>${[['kpi.get(15, Oct 2026)',money(3590)],['kpi.get(4, Oct 2026)',money(-2350)],['kpi.get(20, as of 6 Nov)',money(26300)],['forecast.low(30d)',money(920)+' · '+DS('2026-11-10')]].map(r=>`<tr><td class="num" dir="ltr">${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</tbody></table>
+  <dl class="kv"><dt>${L('Snapshot','اللقطة')}</dt><dd class="num">v${S.snap.v}</dd><dt>${L('Assumptions','الافتراضات')}</dt><dd>${L('Expected receipt dates as recorded','تواريخ التحصيل المتوقعة كما سُجّلت')}</dd></dl>`};
+ return{title:'',body:''}}
+function decide(id,st){const a=S.approvals.find(x=>x.id===id);a.status=st;S.overlay=null;
+ if(st==='approved'){toast(L('Approved and committed once. Recalculating metrics…','تم الاعتماد والحفظ مرة واحدة. جارٍ إعادة احتساب المؤشرات…'));recalc('approval')}else{render();toast(L('Rejected — no financial effect.','تم الرفض — دون أثر مالي.'))}}
+function recalc(why){S.updating=true;render();setTimeout(()=>{S.updating=false;S.snap={v:S.snap.v+1,at:new Date().toISOString(),why};render();announce(L('Metrics updated','تم تحديث المؤشرات'))},1900)}
+function kpiDrawer(k){const per=pLabel();const idx=PERIODS[S.period].idx;const isOct=S.period==='oct';
+ const meta=`<div><h4 class="small muted" style="margin-bottom:6px">${L('Calculation details','تفاصيل الاحتساب')}</h4><dl class="kv"><dt>${L('Snapshot','اللقطة')}</dt><dd class="num">v${S.snap.v} · ${DT(new Date(S.snap.at))}</dd><dt>${L('Formula version','إصدار المعادلة')}</dt><dd class="num" dir="ltr">kpi-registry 1.0</dd><dt>${L('Data coverage','تغطية البيانات')}</dt><dd>${L('1 Jun 2026 – 6 Nov 2026','1 يونيو 2026 – 6 نوفمبر 2026')}</dd></dl></div>`;
+ const src=deps=>`<div class="row">${deps.map(g=>`<span class="pill ${okG(g)?'p-ok':'p-neutral'}">${g} · ${T(GROUPS[g])}</span>`).join('')}</div>`;
+ const tbl=rows=>`<table class="bridge">${rows.map(r=>`<tr class="${r[2]?'tot':''}"><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>`;
+ const nd=!idx?`<div class="note warn">${icon('alert',18)}<span>${L('Insufficient Data for YTD 2026 — records start Jun 2026.','بيانات غير كافية لفترة "منذ بداية 2026" — تبدأ السجلات في يونيو 2026.')}</span></div>`:'';
+ const C={
+  cash:{id:1,t:['Current Cash Balance','رصيد النقد الحالي'],sc:scopeTag.asof(),f:'Opening cash + Σ D2 cash IN − Σ D2 cash OUT  (through as-of date)',deps:['D1','D2'],body:()=>tbl([[L('Opening cash (1 Jun 2026)','النقد الافتتاحي (1 يونيو 2026)'),money(8790)],[L('+ Cash IN to 6 Nov','+ النقد الداخل حتى 6 نوفمبر'),money(86700+S.addIn)],[L('− Cash OUT to 6 Nov','− النقد الخارج حتى 6 نوفمبر'),money(-(90270+S.addOut))],[L('Current cash','النقد الحالي'),money(cashNow()),1]])+`<p class="tiny muted">${L('Only accepted cash transactions move this number. Invoice payment status never does.','المعاملات النقدية المقبولة وحدها تحرّك هذا الرقم. حالة دفع الفواتير لا تفعل ذلك أبدًا.')}</p>`},
+  rev:{id:7,t:['Revenue','الإيرادات'],sc:scopeTag.period(),f:'Σ confirmed pre-tax recognized income in period',deps:['D3'],body:()=>nd||(isOct?tbl([['INV-2052 · Aqaba Retail Group',money(7400)],['INV-2063 · Zarqa Logistics',money(6200)],['INV-2060 · Irbid Medical Center',money(5600)],['INV-2066 · Amman Learning Hub',money(3800)],[L('Revenue (excl. sales tax)','الإيرادات (دون ضريبة المبيعات)'),money(pv('rev')),1]]):tbl([[per,money(pv('rev')),1]]))},
+  np:{id:15,t:['Net Profit / Loss','صافي الربح / الخسارة'],sc:scopeTag.period(),f:'EBIT + other non-operating income − other non-operating costs − interest − income tax',deps:['D3','D4','D5'],body:()=>nd||(isOct?tbl([[L('Revenue','الإيرادات'),money(23000)],[L('− Direct costs','− التكاليف المباشرة'),money(-7360)],[L('Gross profit','مجمل الربح'),money(15640),1],[L('− Operating expenses (incl. D&A 600)','− المصروفات التشغيلية (بما فيها الإهلاك 600)'),money(-11400)],[L('Operating profit (EBIT)','الربح التشغيلي'),money(4240),1],[L('− Interest & income tax','− الفوائد وضريبة الدخل'),money(-650)],[L('Net profit','صافي الربح'),money(3590),1]])+`<p class="small">${L('Net margin','الهامش الصافي')} ${pct(15.6)} · EBITDA ${money(4840)}</p>`:tbl([[L('Revenue','الإيرادات'),money(pv('rev'))],[L('− Total expenses','− إجمالي المصروفات'),money(-pv('exp'))],[L('Net profit','صافي الربح'),money(pv('np')),1]]))},
+  ncf:{id:4,t:['Net Cash Flow','صافي التدفق النقدي'],sc:scopeTag.period(),f:'Cash Received − Cash Paid  (D2, in period)',deps:['D2'],body:()=>nd||(tbl([[L('Cash received','النقد المستلَم'),money(pv('rec'))],[L('− Cash paid','− النقد المدفوع'),money(-pv('paid'))],[L('Net cash flow','صافي التدفق النقدي'),money(pv('ncf')),1]])+(isOct?`<div class="note info">${icon('info',18)}<span>${L('Net profit was positive (JOD 3,590) while cash flow was negative — profit is not the same as cash.','كان صافي الربح موجبًا (3,590 د.أ) بينما كان التدفق النقدي سالبًا — الربح ليس هو النقد.')}</span></div>`:''))},
+  exp:{id:9,t:['Total Expenses','إجمالي المصروفات'],sc:scopeTag.period(),f:'Recognized direct + operating + interest + income tax expenses',deps:['D4','D5'],body:()=>nd||(isOct?hbars(subjById('exp_cat').def):tbl([[per,money(pv('exp')),1]]))},
+  run:{id:6,t:['Cash Runway','مدة كفاية النقد'],sc:scopeTag.asof(),f:'As-of cash ÷ average monthly net burn (trailing 3 completed months)',deps:['D1','D2'],body:()=>{const r=runway();return tbl([[L('Net cash flow Aug','صافي التدفق أغسطس'),money(r.nets[0])],[L('Net cash flow Sep','صافي التدفق سبتمبر'),money(r.nets[1])],[L('Net cash flow Oct','صافي التدفق أكتوبر'),money(r.nets[2])],[L('Average monthly net burn','متوسط الاستنزاف الشهري'),r.v==null?L('None','لا يوجد'):money(r.burn)],[L('Current cash','النقد الحالي'),money(cashNow())],[L('Runway','مدة الكفاية'),r.v==null?L('N/A','غير متاح'):'≈ '+r.v.toFixed(1)+' '+L('months','أشهر'),1]])+`<p class="tiny muted">${L('Estimate. Shown as N/A when there is no net burn — never as infinity or zero.','تقدير. يظهر "غير متاح" عند عدم وجود استنزاف صافٍ — وليس لانهائيًا أو صفرًا.')}</p>`}}};
+ const c=C[k];const miss=missing(c.deps);
+ return{pre:`<div class="row" style="margin-bottom:6px"><span class="pill p-neutral">KPI #${c.id}</span>${c.sc}<span class="badge-official">${L('OFFICIAL','رسمي')}</span></div>`,title:T(c.t),
+  body:`<div><h4 class="small muted" style="margin-bottom:6px">${L('Formula','المعادلة')}</h4><div class="formula">${c.f}</div></div><div><h4 class="small muted" style="margin-bottom:6px">${L('Sources','المصادر')}</h4>${src(c.deps)}</div>
+  <div><h4 class="small muted" style="margin-bottom:6px">${L('Evidence','الأدلة')}</h4>${miss.length?`<div class="note warn">${icon('alert',18)}<span>${L('Insufficient Data. Missing:','بيانات غير كافية. الناقص:')} ${miss.map(g=>T(GROUPS[g])).join(', ')}</span></div>`:c.body()}</div>${meta}`,
+  foot:`${canPage('reports')?`<button class="btn" onclick="nav('reports')">${L('Open in KPI directory','فتح في دليل المؤشرات')}</button>`:''}<button class="btn primary" onclick="closeOv()">${L('Done','تم')}</button>`}}
+
+/* ---------- record forms (centered modals) ---------- */
+const OPT=(arr)=>arr.map(a=>[a[0],T(a[1])]);
+const FORMS={
+ trx:{t:['New cash transaction','معاملة نقدية جديدة'],g:'D2',note:['Only cash transactions change actual cash.','المعاملات النقدية وحدها تغيّر النقد الفعلي.'],f:[
+  {k:'date',l:['Date','التاريخ'],ty:'date',req:1},{k:'amount',l:['Amount (JOD)','المبلغ (د.أ)'],ty:'money',req:1},
+  {k:'dir',l:['Direction','الاتجاه'],ty:'select',req:1,o:[['',['Select…','اختر…']],['IN',['Cash IN','نقد داخل']],['OUT',['Cash OUT','نقد خارج']]]},
+  {k:'cls',l:['Cash-flow class','تصنيف التدفق النقدي'],ty:'select',req:1,o:[['',['Select…','اختر…']],['op',['Operating','تشغيلي']],['inv',['Investing','استثماري']],['fin',['Financing','تمويلي']]]},
+  {k:'desc',l:['Description','الوصف'],ty:'text',req:1,full:1},
+  {k:'cat',l:['Category','الفئة'],ty:'select',req:1,ai:1,o:[['',['Select…','اختر…']],['sw',['Software subscriptions','اشتراكات البرمجيات']],['rent',['Rent','الإيجار']],['sal',['Salaries','الرواتب']],['rec',['Customer receipts','مقبوضات العملاء']],['tax',['Tax payment','دفعة ضريبية']],['other',['Other','أخرى']]]}]},
+ ar:{t:['New customer invoice','فاتورة عميل جديدة'],g:'D3',note:['Recording a payment here updates the balance owed — it never creates a cash transaction.','تسجيل دفعة هنا يحدّث الرصيد المستحق فقط — ولا ينشئ معاملة نقدية أبدًا.'],f:[
+  {k:'cust',l:['Customer','العميل'],ty:'text',req:1},{k:'num',l:['Invoice number','رقم الفاتورة'],ty:'text',req:1,ltr:1},
+  {k:'issue',l:['Issue date','تاريخ الإصدار'],ty:'date',req:1},{k:'due',l:['Due date','تاريخ الاستحقاق'],ty:'date',req:1},
+  {k:'sub',l:['Pre-tax subtotal (JOD)','المجموع قبل الضريبة (د.أ)'],ty:'money',req:1},{k:'tax',l:['Tax rate (%)','نسبة الضريبة (%)'],ty:'money0'},
+  {k:'paid',l:['Paid-to-date (JOD)','المدفوع حتى تاريخه (د.أ)'],ty:'money0'},{k:'exp',l:['Expected receipt date','تاريخ التحصيل المتوقع'],ty:'date',hint:['If empty, the due date is used as a labeled assumption.','إذا تُرك فارغًا، يُستخدم تاريخ الاستحقاق كافتراض موسوم.']}]},
+ ap:{t:['New supplier invoice','فاتورة مورد جديدة'],g:'D4',note:['If this bill is also listed as an obligation, FinPilot will flag the overlap for you to resolve.','إذا كانت هذه الفاتورة مدرجة أيضًا كالتزام، سينبّهك FinPilot إلى التداخل لتحسمه.'],f:[
+  {k:'sup',l:['Supplier','المورد'],ty:'text',req:1},{k:'num',l:['Bill number','رقم الفاتورة'],ty:'text',req:1,ltr:1},
+  {k:'due',l:['Due date','تاريخ الاستحقاق'],ty:'date',req:1},{k:'ctype',l:['Cost classification','تصنيف التكلفة'],ty:'select',req:1,o:[['',['Select…','اختر…']],['direct',['Direct cost','تكلفة مباشرة']],['op',['Operating expense','مصروف تشغيلي']],['asset',['Asset','أصل']]]},
+  {k:'gross',l:['Gross amount (JOD)','المبلغ الإجمالي (د.أ)'],ty:'money',req:1},{k:'paid',l:['Paid-to-date (JOD)','المدفوع حتى تاريخه (د.أ)'],ty:'money0'},{k:'exp',l:['Expected settlement date','تاريخ السداد المتوقع'],ty:'date'}]},
+ obl:{t:['New financial obligation','التزام مالي جديد'],g:'D5',note:['Creates dated forecast events. Marking an installment paid never posts cash.','ينشئ أحداث توقع مؤرخة. تحديد قسط كمدفوع لا يرحّل نقدًا أبدًا.'],f:[
+  {k:'title',l:['Name','الاسم'],ty:'text',req:1,full:1},{k:'type',l:['Type','النوع'],ty:'select',req:1,o:[['',['Select…','اختر…']],['payroll',['Payroll (total)','الرواتب (إجمالي)']],['rent',['Rent','الإيجار']],['loan',['Loan','قرض']],['tax',['Tax','ضريبة']],['other',['Other','أخرى']]]},
+  {k:'amount',l:['Amount per occurrence (JOD)','المبلغ لكل دفعة (د.أ)'],ty:'money',req:1},{k:'freq',l:['Frequency','التكرار'],ty:'select',req:1,o:[['',['Select…','اختر…']],['once',['One-time','مرة واحدة']],['monthly',['Monthly','شهري']],['quarterly',['Quarterly','ربع سنوي']]]},
+  {k:'start',l:['First due date','تاريخ الاستحقاق الأول'],ty:'date',req:1},{k:'end',l:['End date (optional)','تاريخ الانتهاء (اختياري)'],ty:'date'}]},
+ adj:{t:['New accounting adjustment','تسوية محاسبية جديدة'],g:'ADJ',note:['Non-cash: affects recognized profit only. It can never change actual cash.','غير نقدية: تؤثر على الربح المعترف به فقط. لا يمكنها تغيير النقد الفعلي أبدًا.'],f:[
+  {k:'type',l:['Type','النوع'],ty:'select',req:1,o:[['',['Select…','اختر…']],['dep',['Depreciation','إهلاك']],['amort',['Amortization','إطفاء']],['prepaid',['Prepaid expense allocation','توزيع مصروف مدفوع مقدمًا']],['accrual',['Accrual','استحقاق']],['other',['Other (manual reason)','أخرى (سبب يدوي)']]]},
+  {k:'period',l:['Recognition period','فترة الاعتراف'],ty:'month',req:1},{k:'amount',l:['Amount (JOD)','المبلغ (د.أ)'],ty:'money',req:1},{k:'reason',l:['Reason / source','السبب / المصدر'],ty:'text',req:1,full:1}]}};
+function openForm(k){S.overlay={type:'modal',kind:'form',form:k,vals:{},err:{},aiOk:false};S.menu=null;S.focusNext='ff_'+FORMS[k].f[0].k;render()}
+function rFormModal(o){const F=FORMS[o.form];const v=o.vals,e=o.err;const pend=S.screen==='app'&&S.policy&&S.role!=='CEO';
+ const gross=o.form==='ar'&&v.sub?Number(v.sub)*(1+(Number(v.tax)||0)/100):null;
+ return `<div class="scrim" onclick="closeOv()"></div><div class="modal"><form class="box" role="dialog" aria-modal="true" aria-labelledby="fmT" onsubmit="event.preventDefault();saveForm()" novalidate>
+ <div class="dr-h"><div style="flex:1"><h2 id="fmT">${T(F.t)}</h2><div class="small muted">${T(GROUPS[F.g]||['Accounting adjustments','التسويات المحاسبية'])}</div></div><button type="button" class="iconbtn" onclick="closeOv()" aria-label="${L('Close','إغلاق')}">${icon('close')}</button></div>
+ <div class="dr-b" style="gap:0"><div class="grid2">${F.f.map(f=>{const ai=f.ai&&S.aiAvail&&!v[f.k]?`<div class="hint" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${icon('ai',14)}${L('AI suggests','يقترح الذكاء الاصطناعي')}: <strong>${L('Software subscriptions','اشتراكات البرمجيات')}</strong> (86%) <button type="button" class="link" onclick="S.overlay.vals.${f.k}='sw';render()">${L('Use suggestion','استخدام الاقتراح')}</button></div>`:'';
+  const ty=f.ty==='money'||f.ty==='money0'?'text':f.ty;
+  return `<div style="${f.full?'grid-column:1/-1':''}">${field({id:'f'+f.k,label:T(f.l),type:f.ty==='select'?'select':ty,value:v[f.k]??'',on:`S.overlay.vals.${f.k}=this.value${f.ty==='select'?';render()':''}`,err:e[f.k],req:f.req,opts:f.o?OPT(f.o):null,attrs:(f.ty.startsWith('money')?'inputmode="decimal" dir="ltr"':'')+(f.ltr||f.ty==='date'||f.ty==='month'?' dir="ltr"':''),hint:f.hint?T(f.hint):'',extra:ai}).replace('id="f_f','id="ff_').replace('for="f_f','for="ff_')}</div>`}).join('')}</div>
+ ${gross!=null&&!isNaN(gross)?`<p class="small" style="margin-bottom:12px">${L('Gross amount','المبلغ الإجمالي')}: ${money(gross)} · ${L('Outstanding','المتبقي')}: ${money(gross-(Number(v.paid)||0))}</p>`:''}
+ <div class="note info">${icon('info',18)}<span>${T(F.note)}</span></div>
+ ${pend?`<div class="note warn" style="margin-top:10px">${icon('lock',18)}<span>${L('Your company requires CEO approval for this action. Saving will submit a request — nothing is posted until it is approved.','تتطلب شركتك موافقة الرئيس التنفيذي على هذا الإجراء. سيؤدي الحفظ إلى إرسال طلب — ولن يُرحَّل شيء قبل الاعتماد.')}</span></div>`:''}
+ ${S.screen==='app'&&S.policy&&S.role==='CEO'?`<div class="placeholder-box" style="margin-top:10px"><div class="ph-label">${L('Open decision','قرار مفتوح')}</div>${L('How a CEO-initiated action is handled when policy requires CEO approval is undecided (§5.3, §10.4). The prototype saves directly.','لم يُحسم بعد كيفية التعامل مع إجراء يبدأه الرئيس التنفيذي عندما تتطلب السياسة موافقته (§5.3، §10.4). يحفظ النموذج الأولي مباشرة.')}</div>`:''}
+ </div><div class="dr-f"><button type="button" class="btn ghost" onclick="closeOv()">${L('Cancel','إلغاء')}</button><button class="btn primary" type="submit">${pend?L('Submit for approval','إرسال للموافقة'):L('Save','حفظ')}</button></div></form></div>`}
+function saveForm(){const o=S.overlay,F=FORMS[o.form],v=o.vals,e={};const num=x=>Number(String(x??'').replace(/,/g,''));
+ F.f.forEach(f=>{const x=v[f.k];if(f.req&&(x==null||String(x).trim()===''))e[f.k]=L('This field is required.','هذا الحقل مطلوب.');else if(f.ty==='money'&&x!=null&&x!==''&&!(num(x)>0))e[f.k]=L('Enter a positive amount.','أدخل مبلغًا موجبًا.');else if(f.ty==='money0'&&x&&(isNaN(num(x))||num(x)<0))e[f.k]=L('Enter 0 or a positive amount.','أدخل 0 أو مبلغًا موجبًا.')});
+ if(o.form==='ar'&&!e.paid&&v.paid){const g=num(v.sub)*(1+(num(v.tax)||0)/100);if(num(v.paid)>g)e.paid=L('Paid-to-date can\'t exceed the gross amount','لا يمكن أن يتجاوز المدفوع المبلغ الإجمالي')+` (JOD ${fmt(g)}).`}
+ if(o.form==='ap'&&!e.paid&&v.paid&&num(v.paid)>num(v.gross))e.paid=L('Paid-to-date can\'t exceed the gross amount.','لا يمكن أن يتجاوز المدفوع المبلغ الإجمالي.');
+ if(o.form==='ar'&&v.issue&&v.due&&v.due<v.issue)e.due=L('Due date can\'t be before the issue date.','لا يمكن أن يسبق تاريخ الاستحقاق تاريخ الإصدار.');
+ if(o.form==='obl'&&v.end&&v.start&&v.end<v.start)e.end=L('End date must be after the first due date.','يجب أن يكون تاريخ الانتهاء بعد تاريخ الاستحقاق الأول.');
+ o.err=e;if(Object.keys(e).length){render();const k=Object.keys(e)[0];document.getElementById('ff_'+k)?.focus();return}
+ const k=o.form;S.overlay=null;
+ if(S.screen!=='app'){if(F.g==='ADJ')S.counts.ADJ++;else{S.counts[F.g]++;S.groups[F.g]='entered'}render();toast(L('Record saved.','تم حفظ السجل.'));return}
+ if(S.policy&&S.role!=='CEO'){S.approvals.unshift({id:'APR-'+(312+S.approvals.length),by:ROLES[S.role][2],type:[T(F.t),T(F.t)],ref:v.num||v.desc||v.title||'—',field:['New record','سجل جديد'],before:'—',after:k==='trx'?`${v.dir} JOD ${fmt(num(v.amount))}`:(v.amount||v.gross||v.sub||'—'),reason:['Submitted from quick create','أُرسل من الإنشاء السريع'],on:AS_OF,status:'pending',mine:true});render();toast(L('Submitted for CEO approval — not posted yet.','أُرسل لموافقة الرئيس التنفيذي — لم يُرحَّل بعد.'));return}
+ if(k==='trx'&&v.date&&v.date<=AS_OF){const a=num(v.amount)*(v.dir==='IN'?1:-1);S.cashDelta+=a;if(a>0)S.addIn+=a;else S.addOut+=-a;if(v.date.startsWith('2026-10')){if(a>0)S.octIn+=a;else S.octOut+=-a}}
+ toast(k==='trx'?L('Transaction saved. Cash is recalculated; revenue is not affected (cash ≠ revenue).','تم حفظ المعاملة. يُعاد احتساب النقد؛ ولا تتأثر الإيرادات (النقد ≠ الإيرادات).'):L('Record saved.','تم حفظ السجل.'));recalc('save')}
+
+/* =========================================================
+   UI STATES GALLERY (§7.7)
+   ========================================================= */
+function rStates(){const card=(t,b)=>`<div class="card"><h4>${t}</h4>${b}</div>`;
+ return `<div class="page-h"><div><h1>${L('UI States Gallery','معرض حالات الواجهة')}</h1><p class="muted small">${L('Reference examples for every universal state in §7.7. Prototype-only page.','أمثلة مرجعية لكل حالة عامة في §7.7. صفحة للنموذج الأولي فقط.')}</p></div></div>
+ <div class="gal" style="margin-top:14px">
+ ${card(L('Loading','التحميل'),`<div class="skel" style="height:14px;width:50%"></div><div class="skel" style="height:30px;width:75%"></div><p class="tiny muted">${L('Skeletons — never a misleading 0.','هياكل تحميل — وليس صفرًا مضللًا أبدًا.')}</p>`)}
+ ${card(L('Empty','فارغ'),`<div class="empty" style="padding:6px"><p class="small">${L('No supplier invoices yet.','لا توجد فواتير موردين بعد.')}</p><div class="row"><span class="pill p-neutral">${L('Not Provided','غير مُقدَّم')}</span><span class="small muted">≠</span><span class="pill p-info">${L('Confirmed None','لا يوجد (مؤكَّد)')}</span></div><button class="btn sm">${icon('plus',14)}${L('Add supplier invoice','إضافة فاتورة مورد')}</button></div>`)}
+ ${card(L('Insufficient Data','بيانات غير كافية'),`<div class="insuf" style="color:var(--warn);font-weight:600;display:flex;gap:6px">${icon('alert',18)}${L('Insufficient Data','بيانات غير كافية')}</div><p class="small muted">${L('Revenue growth needs a comparable prior period. Records start Jun 2026.','يتطلب نمو الإيرادات فترة سابقة قابلة للمقارنة. تبدأ السجلات في يونيو 2026.')}</p>`)}
+ ${card('N/A',`<div class="row"><span>${L('Gross margin','الهامش الإجمالي')}</span><strong>${L('N/A','غير متاح')}</strong></div><p class="small muted">${L('Revenue for the period is 0, so the ratio is undefined — shown as N/A, not 0%.','إيرادات الفترة صفر، لذا النسبة غير معرّفة — تُعرض "غير متاح" وليس 0%.')}</p>`)}
+ ${card(L('Validation error','خطأ في التحقق'),field({id:'demoV',label:L('Paid-to-date (JOD)','المدفوع حتى تاريخه (د.أ)'),value:'3,100',on:'',err:L('Paid-to-date can\'t exceed the gross amount (JOD 2,860).','لا يمكن أن يتجاوز المدفوع المبلغ الإجمالي (2,860 د.أ).'),attrs:'dir="ltr"'}))}
+ ${card(L('Permission denied','رفض الصلاحية'),`<div class="row">${icon('lock',20)}<span class="small">${L('You don\'t have access to Team & Access. The API returns 403 even for direct links.','ليست لديك صلاحية الوصول إلى الفريق والصلاحيات. تُرجع الواجهة البرمجية 403 حتى للروابط المباشرة.')}</span></div><button class="btn sm" onclick="S.page='team';S.role='Accountant';render()">${L('Try a deep link as Accountant','جرّب رابطًا مباشرًا كمحاسب')}</button>`)}
+ ${card(L('Pending CEO approval','بانتظار موافقة الرئيس التنفيذي'),`<div class="note warn">${icon('lock',18)}<span>${L('Change to SB-1044 is waiting for the CEO. It is not reflected in official figures yet.','التغيير على SB-1044 بانتظار الرئيس التنفيذي. لا يظهر في الأرقام الرسمية بعد.')}</span></div>`)}
+ ${card(L('AI unavailable','الذكاء الاصطناعي غير متاح'),`<div class="note warn">${icon('ai',18)}<span>${L('AI suggestions are unavailable. Map and classify manually — verified calculations keep working.','اقتراحات الذكاء الاصطناعي غير متاحة. اربط وصنّف يدويًا — تستمر الحسابات الموثّقة بالعمل.')}</span></div>`)}
+ ${card(L('Updating metrics','تحديث المؤشرات'),`<div class="snap" style="margin:0"><span class="spin"></span><strong>${L('Updating metrics…','جارٍ تحديث المؤشرات…')}</strong><span class="muted small">${L('Showing previous snapshot until done.','عرض اللقطة السابقة حتى الانتهاء.')}</span></div>`)}
+ ${card(L('Concurrency conflict','تعارض متزامن'),`<div class="note bad">${icon('refresh',18)}<span>${L('Someone changed this invoice after you opened it. Review their version before saving — nothing was overwritten.','غيّر شخص ما هذه الفاتورة بعد أن فتحتها. راجع نسخته قبل الحفظ — لم يُستبدل أي شيء.')}</span></div><div class="row"><button class="btn sm">${L('Compare changes','مقارنة التغييرات')}</button><button class="btn sm ghost">${L('Reload','إعادة التحميل')}</button></div>`)}
+ ${card(L('Session expired','انتهت الجلسة'),`<div class="note info">${icon('lock',18)}<span>${L('Your session expired. Log in again — your unsaved form will be restored, never auto-submitted.','انتهت جلستك. سجّل الدخول مجددًا — سيُستعاد نموذجك غير المحفوظ دون إرساله تلقائيًا.')}</span></div>`)}
+ ${card(L('Official vs hypothetical','رسمي مقابل افتراضي'),`<div class="row"><span class="badge-official">${L('OFFICIAL','رسمي')}</span><span class="small">${L('From committed records','من سجلات معتمدة')}</span></div><div class="row"><span class="badge-hypo">${L('HYPOTHETICAL','افتراضي')}</span><span class="small">${L('Decision Lab scenario — never posted','سيناريو مختبر القرارات — لا يُرحَّل أبدًا')}</span></div><div class="row">${scopeTag.period()}${scopeTag.asof()}${scopeTag.fc(30)}</div>`)}
+ ${card(L('Readiness calculation failed','فشل احتساب الجاهزية'),`<div class="note bad">${icon('alert',18)}<span>${L('We couldn\'t calculate readiness. Your data is safe.','تعذّر احتساب الجاهزية. بياناتك آمنة.')}</span></div><button class="btn sm">${icon('refresh',14)}${L('Retry','إعادة المحاولة')}</button>`)}
+ </div>`}
+
+/* =========================================================
+   PROTOTYPE CONTROLS
+   ========================================================= */
+function rDev(){if(!S.devOpen)return `<div class="dev"><button class="dev-pill" onclick="S.devOpen=true;render()" aria-expanded="false">${icon('sliders',16)}${L('Prototype controls','أدوات النموذج')}</button></div>`;
+ const screens=[['landing','Landing'],['register','Sign-up'],['verify','Verify email'],['login','Log in'],['forgot','Forgot password'],['company','Create workspace'],['finance','Financial setup'],['method','Data method'],['import','CSV import'],['manual','Start from scratch'],['readiness','Readiness'],['app:summary','Summary (full demo data)'],['app:charts','All charts'],['app:states','UI states gallery']];
+ return `<div class="dev"><div class="dev-panel" role="region" aria-label="Prototype controls"><div class="row"><strong>${L('Prototype controls','أدوات النموذج')}</strong><div class="spacer"></div><button class="dev-pill" style="padding:4px 8px;box-shadow:none" onclick="S.devOpen=false;render()" aria-label="Close">${icon('close',14)}</button></div>
+ <label>${L('Jump to screen','الانتقال إلى شاشة')}<select onchange="jump(this.value)"><option value="">—</option>${screens.map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('')}</select></label>
+ <label>${L('View as','عرض كـ')}<select onchange="setRole(this.value)">${Object.keys(ROLES).map(k=>`<option value="${k}" ${S.role===k?'selected':''}>${ROLES[k][0]}</option>`).join('')}</select></label>
+ <label>${L('Summary state','حالة الملخص')}<select onchange="S.sumState=this.value;render()">${[['normal','Normal'],['loading','Loading'],['empty','Empty (no records)']].map(s=>`<option value="${s[0]}" ${S.sumState===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select></label>
+ <button class="d" onclick="recalc('save')">${L('Trigger "Updating metrics…"','تشغيل "تحديث المؤشرات…"')}</button>
+ <label class="tg"><input type="checkbox" ${S.aiAvail?'checked':''} onchange="S.aiAvail=this.checked;render()">${L('AI available','الذكاء الاصطناعي متاح')}</label>
+ <label class="tg"><input type="checkbox" ${S.policy?'checked':''} onchange="S.policy=this.checked;render()">${L('Policy: new records & imports need CEO approval','السياسة: السجلات والاستيراد تحتاج موافقة الرئيس التنفيذي')}</label>
+ <label class="tg"><input type="checkbox" ${S.groups.D1==='attention'?'checked':''} onchange="S.groups.D1=this.checked?'attention':'configured';S.fin.unknown=this.checked;render()">${L('Opening cash unknown','النقد الافتتاحي غير معروف')}</label>
+ <button class="d" onclick="resetProto()">${L('Reset prototype','إعادة ضبط النموذج')}</button>
+ <p class="tiny" style="color:#AEB4BC">${L('Fixture: Petra Digital Solutions (fictional). Jun–Sep history is demo data; Oct 2026 and as-of values match §6.9.','البيانات: بترا للحلول الرقمية (افتراضية). تاريخ يونيو–سبتمبر بيانات تجريبية؛ قيم أكتوبر 2026 والقيم الحالية مطابقة لـ §6.9.')}</p></div></div>`}
+function resetProto(){try{localStorage.removeItem('fp_slots')}catch(e){}S=fresh();render()}
+function jump(v){if(!v)return;if(v.startsWith('app:')){setFullData();S.screen='app';const p=v.split(':')[1];S.page=(p==='summary'&&!canPage('summary'))?'summary':p;S.overlay=null;render();window.scrollTo(0,0);return}
+ if(v==='import'){S.imp=freshImp();S.impInApp=false}if(['finance','method','import','manual','readiness'].includes(v)&&!S.companyCreated){S.companyCreated=true;if(S.groups.D1==='np')S.groups.D1='configured'}go(v)}
+
+/* keyboard: Escape closes overlays & menus */
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(S.overlay){closeOv()}else if(S.menu){S.menu=null;render()}else if(S.sidebarOpen){S.sidebarOpen=false;render()}}});
+document.addEventListener('click',e=>{if(S.menu&&!e.target.closest('.menu-wrap')){S.menu=null;render()}});
+render();
+</script>
+</body>
+</html>
